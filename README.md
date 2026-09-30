@@ -56,9 +56,7 @@ cada parte na apresentação.
 |---|---|
 | `admin@artenacozinha.com.br` | `Arte@2026` |
 
-> ⚠️ Troque a senha em **Painel → Configurações** antes de publicar o site na internet.
 
-Para publicar o site e acessá-lo de qualquer lugar, veja **[docs/PUBLICAR.md](docs/PUBLICAR.md)**.
 
 ## Estrutura de pastas
 
