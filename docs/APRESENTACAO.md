@@ -63,7 +63,6 @@ Cada decisão do código vem de uma seção do documento:
 
 ## 2. Roteiro da demonstração ao vivo (≈ 8 minutos)
 
-> Dica: deixe duas janelas abertas, o **celular** (ou o Chrome em modo celular, F12 → ícone de celular) com o site e o **computador** com o painel.
 
 1. **Cardápio (Figura 8):** mostre o status "Aberto agora", a busca (digite "limao", sem acento), os filtros (Bolos, Promoções) e o banner da promoção da semana.
 2. **Carrinho (Figura 9):** adicione 2 produtos, altere quantidades e mostre o total com a taxa. Tente **finalizar vazio** para mostrar a validação (CT04).
