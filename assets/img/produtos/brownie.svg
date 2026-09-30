@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Imagem ilustrativa">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".85"/>
+      <stop offset=".55" stop-color="#EFD9D3"/>
+      <stop offset="1" stop-color="#EFD9D3"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#g)"/>
+  <g fill="#C2185B" opacity=".12">
+    <circle cx="48" cy="60" r="10"/><circle cx="350" cy="44" r="7"/><circle cx="360" cy="330" r="12"/>
+    <circle cx="36" cy="340" r="6"/><circle cx="320" cy="190" r="5"/><circle cx="70" cy="200" r="5"/>
+  </g>
+  <ellipse cx="200" cy="318" rx="120" ry="18" fill="#4A2A2F" opacity=".08"/>
+  <text x="200" y="262" text-anchor="middle" font-size="190" font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">🍫</text>
+  <text x="318" y="128" text-anchor="middle" font-size="70" font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">🌰</text>
+</svg>

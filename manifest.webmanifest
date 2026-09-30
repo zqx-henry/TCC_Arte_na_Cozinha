@@ -1,0 +1,14 @@
+{
+  "name": "Arte na Cozinha — Confeitaria",
+  "short_name": "Arte na Cozinha",
+  "description": "Delivery próprio da confeitaria Arte na Cozinha",
+  "start_url": "./index.php",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF6F8",
+  "theme_color": "#C2185B",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "assets/img/logo-icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

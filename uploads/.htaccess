@@ -1,0 +1,5 @@
+# Fotos enviadas pelo painel: nunca executar scripts nesta pasta
+Options -Indexes
+<FilesMatch "\.(php\d?|phtml|phar|cgi|pl|py|sh)$">
+  Require all denied
+</FilesMatch>

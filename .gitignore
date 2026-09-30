@@ -1,0 +1,15 @@
+# Configuração com senhas da hospedagem (nunca enviar ao GitHub)
+includes/config.local.php
+
+# Fotos enviadas pelo painel
+uploads/produtos/*
+!uploads/produtos/.gitkeep
+
+# Ferramentas locais
+.claude/
+.vscode/
+.idea/
+node_modules/
+*.log
+Thumbs.db
+.DS_Store
