@@ -4,16 +4,18 @@
  * Campos da entidade PRODUTO (Quadro 13), com envio de foto.
  */
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/admin_promocao.php';
 $admin = exigir_login();
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 $produto = [
     'id_produto' => 0, 'nome' => '', 'descricao' => '', 'categoria' => CATEGORIAS[0],
     'preco' => '', 'preco_promocional' => '', 'imagem' => '', 'disponivel' => 1,
+    'promo_fim' => null, 'promo_modo' => null,
 ];
 
 if ($id > 0) {
-    $st = db()->prepare('SELECT * FROM produto WHERE id_produto = ?');
+    $st = db()->prepare(SQL_PRODUTO_COM_PROMO . ' WHERE p.id_produto = ?');
     $st->execute([$id]);
     $produto = $st->fetch() ?: null;
     if (!$produto) {
@@ -54,6 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         && ($produto['preco_promocional'] <= 0 || $produto['preco_promocional'] >= (float) $produto['preco'])) {
         $erros['preco_promocional'] = 'O preço promocional deve ser menor que o preço normal (ou deixe em branco).';
     }
+    $modoPrazo = (string) ($_POST['modo_prazo'] ?? 'automatico');
+    $fimManual = (string) ($_POST['fim_manual'] ?? '');
+    if ($produto['preco_promocional'] !== null && ($erroPrazo = validar_prazo_promocao($modoPrazo, $fimManual))) {
+        $erros['prazo'] = $erroPrazo;
+    }
 
     // Upload da foto (JPG, PNG ou WEBP até 3 MB)
     $novaImagem = null;
@@ -86,22 +93,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imagem = $novaImagem ?? ($produto['imagem'] ?: null);
         $dados = [
             $produto['nome'], $produto['descricao'], $produto['categoria'], $produto['preco'],
-            $produto['preco_promocional'], $imagem, $produto['disponivel'],
+            $imagem, $produto['disponivel'],
         ];
         if ($id > 0) {
             db()->prepare(
-                'UPDATE produto SET nome = ?, descricao = ?, categoria = ?, preco = ?, preco_promocional = ?, imagem = ?, disponivel = ?
+                'UPDATE produto SET nome = ?, descricao = ?, categoria = ?, preco = ?, imagem = ?, disponivel = ?
                   WHERE id_produto = ?'
             )->execute([...$dados, $id]);
+            salvar_promocao($id, $produto['preco_promocional'], $modoPrazo, $fimManual);
             if ($novaImagem && str_starts_with((string) $imagemAntiga, 'uploads/') && is_file(__DIR__ . '/../' . $imagemAntiga)) {
                 unlink(__DIR__ . '/../' . $imagemAntiga);
             }
             flash('sucesso', 'Produto “' . $produto['nome'] . '” atualizado. As alterações já aparecem no cardápio.');
         } else {
             db()->prepare(
-                'INSERT INTO produto (nome, descricao, categoria, preco, preco_promocional, imagem, disponivel, id_admin)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO produto (nome, descricao, categoria, preco, imagem, disponivel, id_admin)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)'
             )->execute([...$dados, $admin['id']]);
+            salvar_promocao((int) db()->lastInsertId(), $produto['preco_promocional'], $modoPrazo, $fimManual);
             flash('sucesso', 'Produto “' . $produto['nome'] . '” cadastrado.');
         }
         redirecionar('produtos.php');
@@ -162,6 +171,11 @@ require __DIR__ . '/../includes/admin_topo.php';
           <input id="preco_promocional" name="preco_promocional" inputmode="decimal" placeholder="em branco = sem promoção" value="<?= h($fmt($produto['preco_promocional'])) ?>">
           <span class="msg-erro"><?= h($erros['preco_promocional'] ?? '') ?></span>
         </div>
+      </div>
+      <div class="campo <?= isset($erros['prazo']) ? 'erro' : '' ?>">
+        <?= campos_prazo_promocao('produto', $produto['promo_modo'], $produto['promo_fim']) ?>
+        <span class="msg-erro"><?= h($erros['prazo'] ?? '') ?></span>
+        <small class="dica">O prazo só vale se houver preço promocional.</small>
       </div>
       <label class="checkbox">
         <input type="checkbox" name="disponivel" <?= $produto['disponivel'] ? 'checked' : '' ?>>

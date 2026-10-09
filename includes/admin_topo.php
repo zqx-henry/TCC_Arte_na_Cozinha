@@ -26,8 +26,8 @@ $novosPendentes = (int) db()->query("SELECT COUNT(*) FROM pedido WHERE status = 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,700&family=Poppins:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="../assets/css/style.css?v=1.0">
-  <link rel="stylesheet" href="../assets/css/admin.css?v=1.0">
+  <link rel="stylesheet" href="../assets/css/style.css?v=1.1">
+  <link rel="stylesheet" href="../assets/css/admin.css?v=1.1">
 </head>
 <body class="painel" data-csrf="<?= csrf_token() ?>">
 

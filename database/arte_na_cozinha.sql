@@ -7,8 +7,12 @@
 --
 --  Entidades do DER:  CLIENTE, PEDIDO, ITEM_PEDIDO, PRODUTO, ADMINISTRADOR
 --  Tabelas de apoio:  HISTORICO_STATUS (horários da linha do tempo do
---                     acompanhamento — RF03) e CONFIGURACAO (dados da loja
---                     editáveis no painel: taxa, WhatsApp, loja aberta).
+--                     acompanhamento — RF03), CONFIGURACAO (dados da loja
+--                     editáveis no painel), ENTREGA (frete por distância de
+--                     cada pedido), PROMOCAO (prazo para o fim do desconto)
+--                     e CACHE_ENDERECO (endereços já localizados no mapa).
+--
+--  Versão 1.1 — frete por distância e promoções com tempo para acabar.
 -- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS arte_na_cozinha
@@ -18,6 +22,9 @@ CREATE DATABASE IF NOT EXISTS arte_na_cozinha
 USE arte_na_cozinha;
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS cache_endereco;
+DROP TABLE IF EXISTS promocao;
+DROP TABLE IF EXISTS entrega;
 DROP TABLE IF EXISTS historico_status;
 DROP TABLE IF EXISTS item_pedido;
 DROP TABLE IF EXISTS pedido;
@@ -135,6 +142,46 @@ CREATE TABLE configuracao (
   PRIMARY KEY (chave)
 ) ENGINE=InnoDB;
 
+-- ---------------------------------------------------------------------
+-- Apoio – ENTREGA (frete calculado pela distância — 1:1 com PEDIDO)
+-- ---------------------------------------------------------------------
+CREATE TABLE entrega (
+  id_pedido     INT           NOT NULL,
+  distancia_km  DECIMAL(6,2)  NULL,          -- NULL quando foi usada a taxa padrão
+  tempo_min     SMALLINT      NOT NULL,      -- previsão (preparo + deslocamento)
+  tempo_max     SMALLINT      NOT NULL,
+  metodo        VARCHAR(12)   NOT NULL,      -- rota | linha_reta | padrao
+  PRIMARY KEY (id_pedido),
+  CONSTRAINT fk_entrega_pedido FOREIGN KEY (id_pedido)
+    REFERENCES pedido (id_pedido) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- Apoio – PROMOCAO (tempo para o fim do desconto — 1:1 com PRODUTO)
+-- ---------------------------------------------------------------------
+CREATE TABLE promocao (
+  id_produto   INT          NOT NULL,
+  data_inicio  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  data_fim     DATETIME     NOT NULL,
+  modo         VARCHAR(12)  NOT NULL DEFAULT 'automatico',  -- automatico | manual
+  PRIMARY KEY (id_produto),
+  KEY idx_promocao_fim (data_fim),
+  CONSTRAINT fk_promocao_produto FOREIGN KEY (id_produto)
+    REFERENCES produto (id_produto) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- Apoio – CACHE_ENDERECO (evita repetir consultas ao OpenStreetMap)
+-- ---------------------------------------------------------------------
+CREATE TABLE cache_endereco (
+  chave      VARCHAR(255)   NOT NULL,
+  lat        DECIMAL(10,7)  NULL,             -- NULL = endereço não encontrado
+  lng        DECIMAL(10,7)  NULL,
+  precisao   VARCHAR(10)    NULL,             -- endereco | rua | bairro
+  criado_em  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (chave)
+) ENGINE=InnoDB;
+
 -- =====================================================================
 --  DADOS INICIAIS (ilustrativos, como nas Figuras 8 a 11)
 -- =====================================================================
@@ -148,13 +195,22 @@ INSERT INTO administrador (id_admin, nome, email, senha_hash) VALUES
 
 INSERT INTO configuracao (chave, valor) VALUES
 ('loja_aberta',       '1'),
-('taxa_entrega',      '5.00'),
+('taxa_entrega',      '5.00'),   -- taxa padrão, se o serviço de mapas estiver fora do ar
 ('tempo_entrega',     '40–60 min'),
 ('whatsapp_loja',     '5515999990000'),
 ('nome_loja',         'Arte na Cozinha'),
 ('cidade',            'Sorocaba – SP'),
 ('horario',           'Terça a domingo, das 10h às 20h'),
-('produto_destaque',  '13');
+('produto_destaque',  '13'),
+-- Frete por distância (v1.1)
+('endereco_loja',       'R. Francisco Catalano, 440 - Jardim Brasilândia'),
+('loja_lat',            '-23.4766020'),
+('loja_lng',            '-47.4638526'),
+('valor_km',            '3.30'),   -- média brasileira por km
+('taxa_minima',         '0.00'),
+('raio_maximo_km',      '25'),
+('tempo_preparo',       '30'),     -- minutos
+('promo_duracao_horas', '168');    -- promoções acabam sozinhas em 7 dias
 
 -- Produtos (categoria: Bolos | Doces | Tortas | Bebidas)
 INSERT INTO produto (id_produto, id_admin, nome, descricao, categoria, preco, preco_promocional, imagem, disponivel) VALUES
@@ -189,12 +245,21 @@ INSERT INTO cliente (id_cliente, nome, telefone, endereco, bairro, complemento) 
 SET @agora = NOW();
 
 INSERT INTO pedido (id_pedido, id_cliente, id_admin, data_hora, status, forma_pagamento, pago_no_site, taxa_entrega, valor_total, observacao) VALUES
-(1022, 6, 1, @agora - INTERVAL 86 MINUTE, 'entregue',     'pix',      1, 5.00, 18.90, NULL),
-(1024, 5, 1, @agora - INTERVAL 58 MINUTE, 'entregue',     'cartao',   1, 5.00, 53.00, NULL),
-(1027, 4, 1, @agora - INTERVAL 36 MINUTE, 'saiu_entrega', 'pix',      1, 5.00, 34.90, 'Tocar a campainha'),
-(1029, 3, 1, @agora - INTERVAL 19 MINUTE, 'em_preparo',   'dinheiro', 0, 5.00, 31.40, 'Troco para R$ 50'),
-(1030, 2, 1, @agora - INTERVAL 13 MINUTE, 'em_preparo',   'pix',      1, 5.00, 84.90, NULL),
-(1031, 1, NULL, @agora - INTERVAL 2 MINUTE, 'recebido',   'cartao',   0, 5.00, 24.80, NULL);
+(1022, 6, 1, @agora - INTERVAL 86 MINUTE, 'entregue',     'pix',      1,  7.26, 21.16, NULL),
+(1024, 5, 1, @agora - INTERVAL 58 MINUTE, 'entregue',     'cartao',   1, 13.20, 61.20, NULL),
+(1027, 4, 1, @agora - INTERVAL 36 MINUTE, 'saiu_entrega', 'pix',      1, 18.81, 48.71, 'Tocar a campainha'),
+(1029, 3, 1, @agora - INTERVAL 19 MINUTE, 'em_preparo',   'dinheiro', 0, 15.84, 42.24, 'Troco para R$ 50'),
+(1030, 2, 1, @agora - INTERVAL 13 MINUTE, 'em_preparo',   'pix',      1, 17.16, 97.06, NULL),
+(1031, 1, NULL, @agora - INTERVAL 2 MINUTE, 'recebido',   'cartao',   0, 28.38, 48.18, NULL);
+
+-- Frete de cada pedido: distância da rota (OpenStreetMap) × R$ 3,30
+INSERT INTO entrega (id_pedido, distancia_km, tempo_min, tempo_max, metodo) VALUES
+(1022, 2.2, 35, 50, 'rota'),
+(1024, 4.0, 40, 55, 'rota'),
+(1027, 5.7, 40, 55, 'rota'),
+(1029, 4.8, 40, 55, 'rota'),
+(1030, 5.2, 40, 55, 'rota'),
+(1031, 8.6, 45, 60, 'rota');
 
 ALTER TABLE pedido AUTO_INCREMENT = 1032;
 
@@ -225,3 +290,9 @@ INSERT INTO historico_status (id_pedido, status, data_hora) VALUES
 (1030, 'recebido',     @agora - INTERVAL 13 MINUTE),
 (1030, 'em_preparo',   @agora - INTERVAL 10 MINUTE),
 (1031, 'recebido',     @agora - INTERVAL 2 MINUTE);
+
+-- Prazos das promoções (contagem regressiva no site)
+INSERT INTO promocao (id_produto, data_inicio, data_fim, modo) VALUES
+(13, @agora,                    @agora + INTERVAL 7 DAY,                                   'automatico'),
+( 8, @agora - INTERVAL 4 DAY,   @agora + INTERVAL 3 DAY,                                   'automatico'),
+( 5, @agora - INTERVAL 1 DAY,   TIMESTAMP(DATE(@agora + INTERVAL 2 DAY), '20:00:00'),      'manual');

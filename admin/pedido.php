@@ -65,7 +65,7 @@ $formStatus = function (string $status, string $rotulo, string $classe = 'botao'
       </tbody>
     </table>
     <div class="resumo-linha" style="margin-top:10px"><span>Subtotal</span><span><?= dinheiro($subtotal) ?></span></div>
-    <div class="resumo-linha"><span>Taxa de entrega</span><span><?= dinheiro($pedido['taxa_entrega']) ?></span></div>
+    <div class="resumo-linha"><span>Frete<?= $pedido['distancia_km'] !== null ? ' (' . number_format((float) $pedido['distancia_km'], 1, ',', '') . ' km)' : '' ?></span><span><?= dinheiro($pedido['taxa_entrega']) ?></span></div>
     <div class="resumo-linha resumo-total"><span>Total</span><span><?= dinheiro($pedido['valor_total']) ?></span></div>
     <p class="dica">Pagamento: <strong><?= h(FORMAS_PAGAMENTO[$pedido['forma_pagamento']]) ?></strong> ·
       <?= $pedido['pago_no_site'] ? 'pago pelo site' : 'cobrar na entrega' ?></p>
@@ -81,13 +81,23 @@ $formStatus = function (string $status, string $rotulo, string $classe = 'botao'
       <p><?= h(formatar_telefone($pedido['telefone'])) ?></p>
       <p style="margin-top:8px"><?= h($pedido['endereco']) ?> – <?= h($pedido['bairro']) ?></p>
       <?php if ($pedido['complemento']): ?><p class="dica" style="margin:2px 0 0"><?= h($pedido['complemento']) ?></p><?php endif; ?>
+      <?php [$tMin, $tMax] = previsao_pedido($pedido); ?>
+      <p class="dica" style="margin:8px 0 0">
+        <?php if ($pedido['distancia_km'] !== null): ?>
+          📍 <strong><?= number_format((float) $pedido['distancia_km'], 1, ',', '') ?> km</strong> da confeitaria
+          <?= $pedido['metodo_frete'] === 'linha_reta' ? '(estimada)' : '' ?> ·
+        <?php else: ?>
+          Frete pela taxa padrão ·
+        <?php endif; ?>
+        previsão <?= $tMin ?>–<?= $tMax ?> min (até <?= date('H:i', strtotime($pedido['data_hora']) + $tMax * 60) ?>)
+      </p>
       <div class="acoes-linha">
         <a class="botao botao-whatsapp" target="_blank" rel="noopener"
            href="<?= h(link_whatsapp($pedido['telefone'], 'Olá, ' . explode(' ', $pedido['nome'])[0] . '! Aqui é da Arte na Cozinha, sobre o seu pedido nº ' . $id . '.')) ?>">
           <?= icone('whatsapp') ?> WhatsApp do cliente
         </a>
         <a class="botao botao-contorno" target="_blank" rel="noopener"
-           href="https://www.google.com/maps/search/?api=1&query=<?= rawurlencode($pedido['endereco'] . ', ' . $pedido['bairro'] . ', ' . config_loja('cidade')) ?>">Ver no mapa</a>
+           href="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=<?= rawurlencode(config_loja('endereco_loja') . ', ' . config_loja('cidade')) ?>&destination=<?= rawurlencode($pedido['endereco'] . ', ' . $pedido['bairro'] . ', ' . config_loja('cidade')) ?>">Rota da entrega</a>
       </div>
     </section>
 

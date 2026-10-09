@@ -22,9 +22,47 @@ escolhe pagar **pelo site ou na entrega** e acompanha o status em tempo real. A 
 | Tela do cliente | Painel da loja |
 |---|---|
 | Cardápio com busca, categorias e promoção da semana (Figura 8) | Pedidos do dia com indicadores e ações (Figura 11) |
-| Carrinho e finalização sem cadastro (Figura 9) | Produtos e preços (cadastrar, editar, ocultar, excluir) |
-| Acompanhamento do pedido em tempo real (Figura 10) | Promoções e banner da semana |
-| Aviso de privacidade (LGPD) | Configurações: loja aberta/fechada, taxa, WhatsApp, senha |
+| Carrinho com **frete calculado pela distância** e finalização sem cadastro (Figura 9) | Produtos e preços (cadastrar, editar, ocultar, excluir) |
+| Acompanhamento do pedido em tempo real (Figura 10) | Promoções com **tempo para acabar** (automático ou manual) |
+| Contagem regressiva das promoções | Configurações: endereço da loja, frete, prazos, WhatsApp, senha |
+
+## Novidades da versão 1.1
+
+### 🚚 Frete e tempo de entrega calculados pela distância
+
+A confeitaria fica na **R. Francisco Catalano, 440 – Jardim Brasilândia, Sorocaba – SP** (endereço mostrado no
+rodapé, com mapa e "Como chegar"). Quando o cliente digita o endereço no carrinho, o sistema:
+
+1. localiza o endereço no mapa (**OpenStreetMap / Nominatim**, gratuito e sem cadastro);
+2. traça a **rota de carro** da loja até o cliente (**OSRM**), obtendo a distância e o tempo de trajeto;
+3. calcula **frete = distância × R$ 3,30 por km** (média brasileira; valor alterável no painel);
+4. calcula **tempo = preparo (30 min) + trajeto**, com margem de trânsito, mostrado como faixa (ex.: 40–55 min).
+
+| Situação | O que acontece |
+|---|---|
+| Endereço encontrado | Frete e tempo exatos pela rota |
+| Número não encontrado | Usa a rua ou o centro do bairro e avisa que a distância é **aproximada** |
+| Endereço inexistente | Pede para o cliente conferir rua, número e bairro |
+| Fora do raio de entrega (padrão 25 km) | Avisa que a loja ainda não entrega naquele endereço |
+| Serviço de rotas fora do ar | Usa a distância em linha reta × 1,35 (desvio médio das ruas) |
+| Sem internet / mapas fora do ar | Usa a **taxa padrão** das Configurações, para não perder a venda |
+
+O servidor **recalcula o frete** ao registrar o pedido (o valor nunca vem do navegador) e grava a distância e a
+previsão na tabela `entrega`. A tela de acompanhamento e o painel mostram os km, e o botão **Rota da entrega**
+abre o trajeto no Google Maps para o entregador.
+
+### ⏳ Promoções com tempo para acabar
+
+Ao criar uma promoção no painel, aparece **"Tempo automático para o fim do desconto: 6d 23h 59min"**, e o desconto
+**acaba sozinho** no prazo. O administrador escolhe:
+
+- **Automático:** acaba depois da duração padrão (**7 dias**, alterável em Configurações: de 1 a 30 dias);
+- **Manual:** escolhe a **data e a hora** exatas do fim;
+- **Manter o prazo atual:** ao editar, troca só o preço sem reiniciar o tempo.
+
+No site, o banner e os cards mostram a **contagem regressiva** ("⏳ Acaba em 2d 04h 12min"), que fica em destaque na
+última hora. Quando o tempo zera, a página se atualiza e o produto volta ao preço normal, inclusive no carrinho.
+No servidor, `expirar_promocoes()` roda no início de cada página, então ninguém compra com desconto vencido.
 
 ## Tecnologias (Quadro 18)
 
@@ -32,7 +70,8 @@ escolhe pagar **pelo site ou na entrega** e acompanha o status em tempo real. A 
 |---|---|
 | **HTML5** | Estrutura das páginas |
 | **CSS3** | Identidade visual, responsividade (mobile-first) |
-| **JavaScript** | Carrinho, filtros, pesquisa, pagamento simulado, atualização em tempo real |
+| **JavaScript** | Carrinho, filtros, pesquisa, pagamento simulado, cálculo do frete, contagem regressiva, atualização em tempo real |
+| **OpenStreetMap + OSRM** | Localização dos endereços e rota da entrega (gratuitos, sem cadastro) |
 | **PHP 8** | Back-end: regras de negócio, API de pedidos, painel administrativo |
 | **MySQL / MariaDB** | Banco de dados relacional (DER da seção 5.2) |
 | **Git e GitHub** | Controle de versões |
@@ -47,6 +86,8 @@ cada parte na apresentação.
 2. No painel do XAMPP, clique em **Start** no **Apache** e no **MySQL**.
 3. Abra `http://localhost/phpmyadmin` → aba **Importar** → escolha `database/arte_na_cozinha.sql` → **Executar**.
    (ou pelo terminal: `C:\xampp\mysql\bin\mysql.exe -u root < database\arte_na_cozinha.sql`)
+   > **Já tinha a versão 1.0 instalada?** Importe só `database/migracao_v1.1_frete_promocoes.sql`:
+   > ela cria as tabelas novas sem apagar os pedidos existentes.
 4. Acesse o site: **http://localhost/artes-na-cozinha/**
 5. Acesse o painel: **http://localhost/artes-na-cozinha/admin/**
 
@@ -68,6 +109,7 @@ artes-na-cozinha/
 ├── privacidade.php        Aviso de privacidade (LGPD)
 ├── api/
 │   ├── pedido.php         Registra o pedido (POST JSON)
+│   ├── frete.php          Calcula frete e tempo pela distância
 │   └── status.php         Status atual do pedido (tempo real)
 ├── admin/                 Painel administrativo
 │   ├── login.php · sair.php
@@ -81,14 +123,17 @@ artes-na-cozinha/
 │   ├── config.php         Configuração do banco
 │   ├── bootstrap.php      Conexão, sessão, funções e segurança
 │   ├── auth.php           Login do administrador
+│   ├── frete.php          Mapa, rota e cálculo do frete (R$/km)
+│   ├── admin_promocao.php Campos de prazo das promoções
 │   └── cabecalho/rodape, admin_topo/admin_rodape, icones
 ├── assets/
 │   ├── css/style.css      Estilos do site (Apêndice A)
 │   ├── css/admin.css      Estilos do painel
-│   ├── js/                carrinho, cardápio, finalização, acompanhamento, painel
+│   ├── js/                carrinho, cardápio, finalização, acompanhamento, contagem, painel
 │   └── img/               Logotipo (SVG) e imagens ilustrativas dos produtos
 ├── uploads/produtos/      Fotos enviadas pelo painel
 ├── database/arte_na_cozinha.sql   Criação do banco + dados de exemplo
+├── database/migracao_v1.1_frete_promocoes.sql   Atualiza um banco da v1.0
 ├── scripts/gerar_imagens.js       Gera os SVGs da logo e dos produtos
 └── docs/                  Guia de publicação e roteiro de apresentação
 ```
@@ -96,8 +141,10 @@ artes-na-cozinha/
 ## Banco de dados (DER — seção 5.2)
 
 As cinco entidades do DER foram criadas com **exatamente** os atributos dos Quadros 10 a 14.
-Duas tabelas de apoio foram adicionadas: `historico_status` (horários da linha do tempo do
-acompanhamento) e `configuracao` (dados da loja editáveis no painel).
+Os recursos extras usam **tabelas de apoio**, sem alterar as entidades do TCC:
+`historico_status` (horários da linha do tempo), `configuracao` (dados da loja editáveis no painel),
+`entrega` (distância e previsão de cada pedido), `promocao` (prazo de cada desconto) e
+`cache_endereco` (endereços já localizados no mapa).
 
 ```mermaid
 erDiagram
@@ -107,6 +154,8 @@ erDiagram
     ADMINISTRADOR ||--o{ PRODUTO : cadastra
     ADMINISTRADOR |o--o{ PEDIDO : gerencia
     PEDIDO ||--|{ HISTORICO_STATUS : registra
+    PEDIDO ||--o| ENTREGA : "tem frete"
+    PRODUTO ||--o| PROMOCAO : "tem prazo"
 
     CLIENTE {
         int id_cliente PK
@@ -159,6 +208,19 @@ erDiagram
         varchar status
         datetime data_hora
     }
+    ENTREGA {
+        int id_pedido PK
+        decimal distancia_km
+        smallint tempo_min
+        smallint tempo_max
+        varchar metodo
+    }
+    PROMOCAO {
+        int id_produto PK
+        datetime data_inicio
+        datetime data_fim
+        varchar modo
+    }
 ```
 
 ## Requisitos funcionais atendidos (Quadro 9)
@@ -174,8 +236,10 @@ erDiagram
 | RF07 | Filtrar por categoria | `index.php`, `assets/js/cardapio.js` |
 | RF08 | Confirmação pelo WhatsApp | `acompanhar.php`, `admin/acao_pedido.php` |
 | RF09 | Autenticar administrador | `admin/login.php`, `includes/auth.php` |
-| RF10 | Gerenciar produtos, preços e promoções | `admin/produtos.php`, `admin/produto_form.php`, `admin/promocoes.php` |
+| RF10 | Gerenciar produtos, preços e promoções (com prazo automático/manual) | `admin/produtos.php`, `admin/produto_form.php`, `admin/promocoes.php` |
 | RF11 | Gerenciar pedidos | `admin/index.php`, `admin/pedido.php`, `admin/acao_pedido.php` |
+| Extra | Frete e tempo pela distância (R$ 3,30/km) | `includes/frete.php`, `api/frete.php`, `assets/js/finalizar.js` |
+| Extra | Promoções com tempo para acabar | `includes/bootstrap.php`, `admin/promocoes.php`, `assets/js/contagem.js` |
 
 ## Requisitos não funcionais
 
@@ -200,9 +264,16 @@ erDiagram
 | CT09 | Atualizar status → cliente vê o novo status | ✅ Aprovado (atualização automática) |
 | CT10 | Abrir em celular Android e iPhone | ✅ Aprovado em simulação de 375 px; falta testar em aparelhos reais |
 | CT11 | Página inicial em até 3 s no 4G | ⏳ Medir após publicar (Lighthouse do Chrome) |
+| CT12 | Frete pela distância (km × R$ 3,30) e previsão no carrinho | ✅ Aprovado (ex.: 2,4 km → R$ 7,92, 35–50 min) |
+| CT13 | Endereço inexistente / fora do raio de entrega | ✅ Aprovado (aviso exibido, pedido bloqueado) |
+| CT14 | Promoção automática mostra o tempo para o fim | ✅ Aprovado ("Tempo automático para o fim do desconto: 6d 23h 59min") |
+| CT15 | Promoção com fim manual acaba sozinha | ✅ Aprovado (preço volta ao normal no prazo) |
 
 ## Observações
 
 - O **pagamento on-line é simulado** (tela de PIX e cartão de demonstração). Na versão final, ele deve ser integrado a um meio de pagamento (Mercado Pago, PagSeguro etc.), conforme o Quadro 4.
 - Produtos, nomes, preços e imagens são **ilustrativos**, como nas Figuras 8 a 11 do TCC.
 - O logotipo é o **provisório** da seção 7.1.1, recriado em SVG vetorial.
+- Os serviços de mapa (OpenStreetMap e OSRM) são **gratuitos** e têm limite de uso (1 consulta por segundo).
+  O sistema guarda os endereços já pesquisados e limita as consultas por visitante. Para um volume grande de
+  pedidos, dá para trocar por um serviço pago (Google Maps Platform) mudando só `includes/frete.php`.

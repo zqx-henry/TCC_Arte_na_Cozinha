@@ -845,3 +845,77 @@ main { flex: 1; padding-bottom: 110px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* =====================================================================
+   v1.1 — Frete por distância e promoções com prazo
+   ===================================================================== */
+
+/* Quadro do frete no carrinho */
+.caixa-frete {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px dashed var(--cor-apoio);
+  border-radius: 14px;
+  background: var(--cor-fundo);
+}
+.caixa-frete-icone { font-size: 1.4rem; line-height: 1; }
+.caixa-frete strong { display: block; }
+.caixa-frete small { display: block; margin-top: 2px; color: var(--cor-texto-suave); font-size: .85rem; }
+.caixa-frete[data-estado="calculando"] .caixa-frete-icone { animation: pulo 1s infinite; }
+.caixa-frete[data-estado="ok"] { border-style: solid; border-color: #B8E3C8; background: var(--cor-sucesso-bg); }
+.caixa-frete[data-estado="ok"] strong { color: #13663A; }
+.caixa-frete[data-estado="erro"] { border-style: solid; border-color: #F6BDCD; background: #FFF0F4; }
+.caixa-frete[data-estado="erro"] strong { color: var(--cor-principal); }
+.resumo-linha small { color: var(--cor-texto-suave); font-size: .8rem; }
+
+/* Contador das promoções */
+.contagem-mini {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #FFF4E2;
+  color: #8A5300;
+  font-size: .78rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.contagem-mini.contagem-urgente { background: #FFE8EE; color: var(--cor-principal); animation: pulso-suave 1.6s infinite; }
+.contagem-mini.contagem-acabou { opacity: .6; }
+@keyframes pulso-suave { 50% { opacity: .65; } }
+.card-info .contagem-mini { display: table; }
+.item-carrinho .contagem-mini { display: table; }
+
+.banner-contagem {
+  margin-top: 8px;
+  font-size: .92rem;
+  opacity: .95;
+  font-variant-numeric: tabular-nums;
+}
+.banner-contagem strong {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .2);
+}
+
+/* Distância no acompanhamento */
+.previsao .distancia { margin-top: 6px; color: var(--cor-texto-suave); font-size: .85rem; }
+
+/* Rodapé: endereço e mapa */
+.rodape-endereco { margin-bottom: 10px; font-style: normal; color: #fff; line-height: 1.6; }
+.rodape-mapa {
+  margin-top: 26px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, .25);
+  background: rgba(255, 255, 255, .1);
+}
+.rodape-mapa iframe { display: block; width: 100%; height: 220px; border: 0; }
+@media (min-width: 760px) {
+  .rodape-grade { grid-template-columns: 1.3fr 1fr 1fr; }
+  .rodape-mapa iframe { height: 260px; }
+}

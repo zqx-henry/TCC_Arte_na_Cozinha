@@ -96,11 +96,12 @@ function dinheiro($valor): string
     return 'R$ ' . number_format((float) $valor, 2, ',', '.');
 }
 
-/** Preço que vale agora (promocional, se houver) */
+/** Preço que vale agora (promocional, se houver e ainda não tiver vencido) */
 function preco_atual(array $produto): float
 {
     $promo = $produto['preco_promocional'];
-    return ($promo !== null && (float) $promo > 0 && (float) $promo < (float) $produto['preco'])
+    $vencida = !empty($produto['promo_fim']) && strtotime($produto['promo_fim']) <= time();
+    return (!$vencida && $promo !== null && (float) $promo > 0 && (float) $promo < (float) $produto['preco'])
         ? (float) $promo
         : (float) $produto['preco'];
 }
@@ -108,6 +109,128 @@ function preco_atual(array $produto): float
 function em_promocao(array $produto): bool
 {
     return preco_atual($produto) < (float) $produto['preco'];
+}
+
+// ---------------------------------------------------------------------
+// Promoções com tempo para acabar
+// ---------------------------------------------------------------------
+
+/** Trecho de SQL que traz o fim da promoção junto com o produto */
+const SQL_PRODUTO_COM_PROMO =
+    'SELECT p.*, pr.data_fim AS promo_fim, pr.modo AS promo_modo
+       FROM produto p LEFT JOIN promocao pr ON pr.id_produto = p.id_produto';
+
+/**
+ * Encerra as promoções cujo prazo acabou: o produto volta ao preço normal.
+ * Roda no início de cada página, então nenhum cliente compra com desconto vencido.
+ */
+function expirar_promocoes(): void
+{
+    $pdo = db();
+    $pdo->exec(
+        'UPDATE produto p JOIN promocao pr ON pr.id_produto = p.id_produto
+            SET p.preco_promocional = NULL
+          WHERE pr.data_fim <= NOW()'
+    );
+    $pdo->exec('DELETE FROM promocao WHERE data_fim <= NOW()');
+}
+
+/** Duração automática configurada no painel, em horas (padrão: 7 dias) */
+function duracao_promocao_horas(): int
+{
+    return max(1, (int) config_loja('promo_duracao_horas', '168'));
+}
+
+/** "168" -> "7 dias", "36" -> "1 dia e 12 h" */
+function descrever_horas(int $horas): string
+{
+    $dias = intdiv($horas, 24);
+    $resto = $horas % 24;
+    $partes = [];
+    if ($dias) $partes[] = $dias . ($dias === 1 ? ' dia' : ' dias');
+    if ($resto) $partes[] = $resto . ' h';
+    return implode(' e ', $partes) ?: '0 h';
+}
+
+/** Tempo restante legível: "2d 04h 12min" ou "45min" */
+function tempo_restante(string $dataFim): string
+{
+    $seg = max(0, strtotime($dataFim) - time());
+    $d = intdiv($seg, 86400);
+    $h = intdiv($seg % 86400, 3600);
+    $m = intdiv($seg % 3600, 60);
+    if ($d > 0) return sprintf('%dd %02dh %02dmin', $d, $h, $m);
+    if ($h > 0) return sprintf('%dh %02dmin', $h, $m);
+    return sprintf('%dmin', max(1, $m));
+}
+
+/**
+ * Cria ou atualiza a promoção de um produto.
+ * $modo: 'automatico' (agora + duração padrão) ou 'manual' ($fimManual escolhido no painel).
+ * Retorna null em caso de sucesso ou a mensagem de erro.
+ */
+function salvar_promocao(int $idProduto, ?float $precoPromocional, string $modo = 'automatico', string $fimManual = ''): ?string
+{
+    $pdo = db();
+    if ($precoPromocional === null) {
+        $pdo->prepare('UPDATE produto SET preco_promocional = NULL WHERE id_produto = ?')->execute([$idProduto]);
+        $pdo->prepare('DELETE FROM promocao WHERE id_produto = ?')->execute([$idProduto]);
+        return null;
+    }
+
+    if ($erro = validar_prazo_promocao($modo, $fimManual)) {
+        return $erro;
+    }
+
+    // "manter": só troca o preço e continua com o prazo que já estava valendo
+    if ($modo === 'manter') {
+        $st = $pdo->prepare('SELECT COUNT(*) FROM promocao WHERE id_produto = ?');
+        $st->execute([$idProduto]);
+        if ((int) $st->fetchColumn() > 0) {
+            $pdo->prepare('UPDATE produto SET preco_promocional = ? WHERE id_produto = ?')->execute([$precoPromocional, $idProduto]);
+            return null;
+        }
+        $modo = 'automatico'; // não havia prazo: começa a contar agora
+    }
+
+    if ($modo === 'manual') {
+        $fim = strtotime($fimManual);
+    } else {
+        $modo = 'automatico';
+        $fim = time() + duracao_promocao_horas() * 3600;
+    }
+
+    $pdo->prepare('UPDATE produto SET preco_promocional = ? WHERE id_produto = ?')->execute([$precoPromocional, $idProduto]);
+    $pdo->prepare(
+        'INSERT INTO promocao (id_produto, data_inicio, data_fim, modo) VALUES (?, NOW(), ?, ?)
+         ON DUPLICATE KEY UPDATE data_inicio = NOW(), data_fim = VALUES(data_fim), modo = VALUES(modo)'
+    )->execute([$idProduto, date('Y-m-d H:i:s', $fim), $modo]);
+    return null;
+}
+
+/** Confere o prazo escolhido no painel; devolve a mensagem de erro ou null */
+function validar_prazo_promocao(string $modo, string $fimManual): ?string
+{
+    if ($modo !== 'manual') {
+        return null;
+    }
+    $fim = strtotime($fimManual);
+    if (!$fim) {
+        return 'Escolha a data e a hora em que a promoção deve acabar.';
+    }
+    if ($fim <= time() + 60) {
+        return 'O fim da promoção precisa ser uma data e hora futura.';
+    }
+    if ($fim > strtotime('+1 year')) {
+        return 'Escolha um fim de promoção em até 1 ano.';
+    }
+    return null;
+}
+
+/** Atributo com o fim da promoção em segundos (para o contador em JavaScript) */
+function atributo_fim(?string $dataFim): string
+{
+    return $dataFim ? ' data-fim="' . strtotime($dataFim) . '"' : '';
 }
 
 /** Lê uma configuração da loja (tabela configuracao) */
@@ -261,8 +384,11 @@ function responder_json(array $dados, int $codigo = 200): never
 function buscar_pedido(int $id): ?array
 {
     $st = db()->prepare(
-        'SELECT p.*, c.nome, c.telefone, c.endereco, c.bairro, c.complemento
-           FROM pedido p JOIN cliente c ON c.id_cliente = p.id_cliente
+        'SELECT p.*, c.nome, c.telefone, c.endereco, c.bairro, c.complemento,
+                e.distancia_km, e.tempo_min, e.tempo_max, e.metodo AS metodo_frete
+           FROM pedido p
+           JOIN cliente c ON c.id_cliente = p.id_cliente
+           LEFT JOIN entrega e ON e.id_pedido = p.id_pedido
           WHERE p.id_pedido = ?'
     );
     $st->execute([$id]);
@@ -295,7 +421,8 @@ function mensagem_resumo_pedido(array $pedido): string
     foreach ($pedido['itens'] as $item) {
         $linhas[] = $item['quantidade'] . '× ' . $item['produto'] . ' — ' . dinheiro($item['subtotal']);
     }
-    $linhas[] = 'Taxa de entrega — ' . dinheiro($pedido['taxa_entrega']);
+    $linhas[] = 'Taxa de entrega' . ($pedido['distancia_km'] !== null ? ' (' . number_format((float) $pedido['distancia_km'], 1, ',', '') . ' km)' : '')
+              . ' — ' . dinheiro($pedido['taxa_entrega']);
     $linhas[] = '*Total: ' . dinheiro($pedido['valor_total']) . '*';
     $linhas[] = '';
     $linhas[] = 'Pagamento: ' . FORMAS_PAGAMENTO[$pedido['forma_pagamento']]
@@ -310,3 +437,16 @@ function mensagem_resumo_pedido(array $pedido): string
     $linhas[] = 'Acompanhe: ' . link_acompanhamento((int) $pedido['id_pedido']);
     return implode("\n", $linhas);
 }
+
+/** Previsão de entrega do pedido: [minutos mínimos, minutos máximos] */
+function previsao_pedido(array $pedido): array
+{
+    if (!empty($pedido['tempo_min'])) {
+        return [(int) $pedido['tempo_min'], (int) $pedido['tempo_max']];
+    }
+    preg_match_all('/\d+/', config_loja('tempo_entrega', '40-60'), $m);
+    return [(int) ($m[0][0] ?? 40), (int) (end($m[0]) ?: 60)];
+}
+
+// Encerra promoções vencidas antes de montar qualquer página
+expirar_promocoes();

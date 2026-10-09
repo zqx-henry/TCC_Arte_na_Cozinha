@@ -32,7 +32,23 @@ $descricaoPagina = $descricaoPagina ?? 'Arte na Cozinha — confeitaria artesana
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,700&family=Poppins:wght@400;500;600;700&display=swap">
 
-  <link rel="stylesheet" href="assets/css/style.css?v=1.0">
+  <link rel="stylesheet" href="assets/css/style.css?v=1.1">
+
+  <!-- Dados estruturados: ajudam o Google a mostrar endereço e horário da confeitaria -->
+  <script type="application/ld+json"><?= json_encode([
+      '@context'  => 'https://schema.org',
+      '@type'     => 'Bakery',
+      'name'      => 'Arte na Cozinha',
+      'telephone' => '+' . so_digitos(config_loja('whatsapp_loja')),
+      'address'   => [
+          '@type'           => 'PostalAddress',
+          'streetAddress'   => config_loja('endereco_loja'),
+          'addressLocality' => 'Sorocaba',
+          'addressRegion'   => 'SP',
+          'addressCountry'  => 'BR',
+      ],
+      'geo' => ['@type' => 'GeoCoordinates', 'latitude' => (float) config_loja('loja_lat'), 'longitude' => (float) config_loja('loja_lng')],
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script>
 </head>
 <body data-pagina="<?= h($paginaAtual) ?>">
 

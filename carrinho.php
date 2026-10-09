@@ -6,7 +6,7 @@
  */
 require_once __DIR__ . '/includes/bootstrap.php';
 
-$produtos = db()->query('SELECT * FROM produto WHERE disponivel = 1')->fetchAll();
+$produtos = db()->query(SQL_PRODUTO_COM_PROMO . ' WHERE p.disponivel = 1')->fetchAll();
 $dadosJs = [];
 foreach ($produtos as $p) {
     $dadosJs[$p['id_produto']] = [
@@ -14,6 +14,7 @@ foreach ($produtos as $p) {
         'preco'  => preco_atual($p),
         'normal' => (float) $p['preco'],
         'imagem' => $p['imagem'],
+        'fim'    => em_promocao($p) && $p['promo_fim'] ? strtotime($p['promo_fim']) : null,
     ];
 }
 
@@ -85,6 +86,16 @@ require __DIR__ . '/includes/cabecalho.php';
             <textarea id="observacao" name="observacao" maxlength="200" placeholder="Ex.: sem granulado, tocar a campainha..."></textarea>
           </div>
         </div>
+
+        <!-- Frete calculado pela distância até a confeitaria -->
+        <div class="caixa-frete" id="caixaFrete" data-estado="aguardando" aria-live="polite">
+          <span class="caixa-frete-icone" aria-hidden="true">📍</span>
+          <div>
+            <strong id="freteTitulo">Frete calculado pela distância</strong>
+            <small id="freteTexto">Preencha o endereço e o bairro para calcular o frete e o tempo de entrega
+              (<?= dinheiro(config_loja('valor_km', '3.30')) ?> por km, saindo da <?= h(config_loja('endereco_loja')) ?>).</small>
+          </div>
+        </div>
       </section>
 
       <section class="cartao" aria-labelledby="tPagamento">
@@ -118,7 +129,8 @@ require __DIR__ . '/includes/cabecalho.php';
     <aside class="coluna-resumo">
       <section class="cartao" aria-label="Resumo do pedido">
         <div class="resumo-linha"><span>Subtotal</span><span id="valorSubtotal">R$ 0,00</span></div>
-        <div class="resumo-linha"><span>Taxa de entrega</span><span id="valorTaxa"><?= dinheiro(config_loja('taxa_entrega')) ?></span></div>
+        <div class="resumo-linha"><span>Frete <small id="freteKm"></small></span><span id="valorTaxa">a calcular</span></div>
+        <div class="resumo-linha" id="linhaPrevisao" hidden><span>Previsão de entrega</span><span id="valorPrevisao"></span></div>
         <div class="resumo-linha resumo-total"><span>Total</span><span id="valorTotal">R$ 0,00</span></div>
       </section>
 
@@ -160,9 +172,7 @@ require __DIR__ . '/includes/cabecalho.php';
 </div>
 
 <script>
-  window.PRODUTOS = <?= json_encode($dadosJs, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
-  window.TAXA_ENTREGA = <?= json_encode((float) config_loja('taxa_entrega')) ?>;
-  window.LOJA_ABERTA = <?= loja_aberta() ? 'true' : 'false' ?>;
+  window.PRODUTOS = <?= json_encode($dadosJs, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;  window.LOJA_ABERTA = <?= loja_aberta() ? 'true' : 'false' ?>;
 </script>
 
 <?php require __DIR__ . '/includes/rodape.php'; ?>

@@ -18,7 +18,10 @@
   // -------------------------------------------------------------------
   // Itens e totais
   // -------------------------------------------------------------------
-  function total() { return Carrinho.subtotal() + window.TAXA_ENTREGA; }
+  // Frete calculado pelo servidor (api/frete.php); null enquanto não calculado
+  let frete = null;
+
+  function total() { return Carrinho.subtotal() + (frete ? frete.taxa : 0); }
 
   function desenhar() {
     const itens = Carrinho.ler();
@@ -30,10 +33,11 @@
     listaItens.innerHTML = ids.map((id) => {
       const p = window.PRODUTOS[id];
       const promo = p.preco < p.normal ? `<span class="preco-antigo">${formatarDinheiro(p.normal)}</span>` : '';
+      const prazo = p.fim ? `<div class="contagem-mini" data-fim="${p.fim}">⏳ Desconto acaba em <span class="contagem-valor"></span></div>` : '';
       return `<div class="item-carrinho">
           <div>
             <div class="nome">${esc(p.nome)}</div>
-            <span class="preco">${formatarDinheiro(p.preco)}</span>${promo}
+            <span class="preco">${formatarDinheiro(p.preco)}</span>${promo}${prazo}
           </div>
           <div class="quantidade">
             <button type="button" data-menos="${id}" aria-label="Diminuir ${esc(p.nome)}">${svg('M5 12h14')}</button>
@@ -45,7 +49,87 @@
 
     document.getElementById('valorSubtotal').textContent = formatarDinheiro(Carrinho.subtotal());
     document.getElementById('valorTotal').textContent = formatarDinheiro(total());
+    if (typeof Contagem !== 'undefined') Contagem.atualizar();
   }
+
+  // -------------------------------------------------------------------
+  // Frete por distância: calcula quando endereço e bairro estão preenchidos
+  // -------------------------------------------------------------------
+  const caixaFrete = document.getElementById('caixaFrete');
+  const freteTitulo = document.getElementById('freteTitulo');
+  const freteTexto = document.getElementById('freteTexto');
+  let ultimoEnderecoCalculado = '';
+  let requisicaoAtual = 0;
+
+  function mostrarFrete(estado, titulo, texto) {
+    caixaFrete.dataset.estado = estado;
+    freteTitulo.textContent = titulo;
+    freteTexto.textContent = texto;
+  }
+
+  function aplicarFrete(dados) {
+    frete = dados;
+    const km = dados && dados.distancia_km != null ? `(${String(dados.distancia_km).replace('.', ',')} km)` : '';
+    document.getElementById('freteKm').textContent = km;
+    document.getElementById('valorTaxa').textContent = dados ? formatarDinheiro(dados.taxa) : 'a calcular';
+    document.getElementById('linhaPrevisao').hidden = !dados;
+    if (dados) document.getElementById('valorPrevisao').textContent = `${dados.tempo_min}–${dados.tempo_max} min`;
+    document.getElementById('valorTotal').textContent = formatarDinheiro(total());
+  }
+
+  async function calcularFrete(forcar = false) {
+    const endereco = form.elements.endereco.value.trim();
+    const bairro = form.elements.bairro.value.trim();
+    const chave = `${endereco}|${bairro}`.toLowerCase();
+    if (endereco.length < 5 || bairro.length < 2) {
+      aplicarFrete(null);
+      ultimoEnderecoCalculado = '';
+      return null;
+    }
+    if (!forcar && chave === ultimoEnderecoCalculado && frete) return frete;
+
+    const minha = ++requisicaoAtual;
+    aplicarFrete(null);
+    mostrarFrete('calculando', 'Calculando frete…', 'Localizando o endereço no mapa e traçando a rota a partir da confeitaria.');
+
+    try {
+      const resp = await fetch('api/frete.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ csrf: form.elements.csrf.value, endereco, bairro }),
+      });
+      const json = await resp.json();
+      if (minha !== requisicaoAtual) return null; // o cliente mudou o endereço no meio do cálculo
+      if (!json.ok) {
+        mostrarFrete('erro', 'Não foi possível calcular o frete', json.erro);
+        return null;
+      }
+      ultimoEnderecoCalculado = chave;
+      aplicarFrete(json);
+      const kmTxt = json.distancia_km != null ? String(json.distancia_km).replace('.', ',') + ' km' : '';
+      if (json.metodo === 'padrao') {
+        mostrarFrete('ok', `Frete ${formatarDinheiro(json.taxa)} · ${json.tempo_min}–${json.tempo_max} min`,
+          'O serviço de mapas não respondeu agora; aplicamos a taxa padrão da loja.');
+      } else {
+        mostrarFrete('ok', `${kmTxt} da confeitaria · Frete ${formatarDinheiro(json.taxa)}`,
+          `Entrega em ${json.tempo_min}–${json.tempo_max} min (preparo + trajeto). ${kmTxt} × ${formatarDinheiro(json.valor_km)}/km`
+          + (json.aproximado ? '. Distância aproximada: não achamos o número exato, usamos a rua/bairro.' : '.'));
+      }
+      return json;
+    } catch {
+      if (minha === requisicaoAtual) mostrarFrete('erro', 'Sem conexão', 'Não foi possível calcular o frete. Verifique sua internet e tente de novo.');
+      return null;
+    }
+  }
+
+  let esperaFrete;
+  ['endereco', 'bairro'].forEach((campo) => {
+    form.elements[campo].addEventListener('input', () => {
+      clearTimeout(esperaFrete);
+      esperaFrete = setTimeout(calcularFrete, 1200); // espera o cliente parar de digitar
+    });
+    form.elements[campo].addEventListener('change', () => { clearTimeout(esperaFrete); calcularFrete(); });
+  });
 
   listaItens.addEventListener('click', (e) => {
     const mais = e.target.closest('[data-mais]');
@@ -191,6 +275,17 @@
     if (!window.LOJA_ABERTA) return;
     if (!validar()) return;
 
+    // O frete precisa estar calculado antes de pagar (o valor entra no total)
+    if (!frete) {
+      botao.disabled = true;
+      const calculado = await calcularFrete(true);
+      botao.disabled = false;
+      if (!calculado) {
+        caixaFrete.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+
     const pagarNoSite = form.elements.quando.value === 'site';
     if (pagarNoSite && !(await abrirPagamento())) return;
 
@@ -245,4 +340,5 @@
 
   atualizarPagamento();
   desenhar();
+  if (!form.hidden) calcularFrete(); // endereço lembrado neste aparelho: já calcula o frete
 })();

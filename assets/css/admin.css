@@ -492,3 +492,69 @@ body.painel { display: block; min-height: 100vh; }
   .tabela td.celula-itens { min-width: 200px; }
   .tabela th, .tabela td { padding-left: 14px; padding-right: 14px; }
 }
+
+/* =====================================================================
+   v1.1 — Promoções com tempo para acabar
+   ===================================================================== */
+.titulo-bloco { margin: 26px 0 12px; font-size: 1.2rem; }
+
+.prazo-promocao {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 0;
+  border: 0;
+}
+.prazo-promocao legend { margin-bottom: 8px; font-weight: 700; }
+.opcao-prazo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+.opcao-prazo input[type="radio"] { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--cor-principal); flex-shrink: 0; }
+.opcao-prazo:has(input[type="radio"]:checked) { border: 2px solid var(--cor-principal); background: var(--cor-apoio-claro); }
+.opcao-prazo small { display: block; color: var(--cor-texto-suave); font-size: .82rem; }
+.opcao-prazo input[type="datetime-local"] {
+  display: block;
+  margin-top: 8px;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+.opcao-prazo input[type="datetime-local"]:disabled { opacity: .5; }
+
+.lista-promocoes { display: grid; gap: 14px; }
+.promo-card { margin: 0; }
+.promo-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.promo-precos { display: flex; align-items: center; gap: 10px; }
+.promo-precos s { color: var(--cor-texto-suave); }
+.promo-precos strong { color: var(--cor-principal); font-size: 1.2rem; }
+.promo-prazo { margin: 12px 0 0; }
+.prazo-texto {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #FFF4E2;
+  color: #7A4B07;
+  font-variant-numeric: tabular-nums;
+}
+.prazo-texto.contagem-urgente { background: #FFE8EE; color: var(--cor-principal); }
+.promo-editar { margin-top: 12px; }
+.promo-editar summary { cursor: pointer; color: var(--cor-principal); font-weight: 600; }
+.promo-editar form { margin-top: 12px; }
+.form-nova-promo .botao { margin-top: 4px; }
+.prazo-mini { display: block; margin-top: 4px; color: #8A5300; font-size: .78rem; font-variant-numeric: tabular-nums; }
+.botao-acao.perigo { border-color: #E8A0A8; color: #B00020; }
+.botao-acao.perigo:hover { background: #FFF0F0; }
+
+@media (min-width: 1100px) {
+  .lista-promocoes { grid-template-columns: 1fr 1fr; }
+}

@@ -56,8 +56,9 @@ if ($busca !== '') {
 }
 
 $st = db()->prepare(
-    "SELECT p.*, COALESCE(SUM(i.quantidade), 0) AS vendidos
+    "SELECT p.*, pr.data_fim AS promo_fim, pr.modo AS promo_modo, COALESCE(SUM(i.quantidade), 0) AS vendidos
        FROM produto p
+       LEFT JOIN promocao pr ON pr.id_produto = p.id_produto
        LEFT JOIN item_pedido i ON i.id_produto = p.id_produto
       WHERE " . implode(' AND ', $where) . "
       GROUP BY p.id_produto
@@ -112,7 +113,10 @@ require __DIR__ . '/../includes/admin_topo.php';
           </td>
           <td data-rotulo="Categoria"><?= h($p['categoria']) ?></td>
           <td data-rotulo="Preço"><?= dinheiro($p['preco']) ?></td>
-          <td data-rotulo="Promoção"><?= em_promocao($p) ? '<span class="etiqueta etiqueta-preparo">' . dinheiro($p['preco_promocional']) . '</span>' : '<span class="traco">—</span>' ?></td>
+          <td data-rotulo="Promoção"><?php if (em_promocao($p)): ?>
+            <span class="etiqueta etiqueta-preparo"><?= dinheiro($p['preco_promocional']) ?></span>
+            <?php if ($p['promo_fim']): ?><small class="prazo-mini"<?= atributo_fim($p['promo_fim']) ?>>⏳ <span class="contagem-valor"><?= h(tempo_restante($p['promo_fim'])) ?></span></small><?php endif; ?>
+          <?php else: ?><span class="traco">—</span><?php endif; ?></td>
           <td data-rotulo="Vendidos"><?= (int) $p['vendidos'] ?></td>
           <td data-rotulo="Cardápio">
             <form method="post">

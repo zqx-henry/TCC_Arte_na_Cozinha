@@ -33,6 +33,23 @@
   });
 })();
 
+// Prazo da promoção: o campo de data só fica ativo quando "Manual" está marcado
+document.querySelectorAll('[data-prazo]').forEach((grupo) => {
+  const campoData = grupo.querySelector('input[name="fim_manual"]');
+  const atualizar = () => {
+    const manual = grupo.querySelector('input[name="modo_prazo"]:checked')?.value === 'manual';
+    campoData.disabled = !manual;
+    campoData.required = manual;
+  };
+  grupo.addEventListener('change', atualizar);
+  // Clicar na data já escolhe a opção "Manual"
+  campoData.closest('label').addEventListener('click', () => {
+    grupo.querySelector('input[value="manual"]').checked = true;
+    atualizar();
+  });
+  atualizar();
+});
+
 function mostrarAviso(texto) {
   const toast = document.getElementById('toast');
   if (!toast) return;
