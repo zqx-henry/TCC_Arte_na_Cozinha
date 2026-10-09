@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $produtos = db()->query(
-    SQL_PRODUTO_COM_PROMO . " ORDER BY FIELD(p.categoria, 'Bolos', 'Doces', 'Tortas', 'Bebidas'), p.nome"
+    SQL_PRODUTO_COM_PROMO . " ORDER BY COALESCE((SELECT c.ordem FROM categoria c WHERE c.nome = p.categoria), 999), p.categoria, p.nome"
 )->fetchAll();
 $ativas   = array_values(array_filter($produtos, 'em_promocao'));
 usort($ativas, fn($a, $b) => strcmp((string) $a['promo_fim'], (string) $b['promo_fim'])); // acabando primeiro

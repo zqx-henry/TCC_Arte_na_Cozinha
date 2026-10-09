@@ -38,7 +38,12 @@ require __DIR__ . '/includes/cabecalho.php';
 
     <h2>Seus direitos</h2>
     <p>Você pode pedir, a qualquer momento, a consulta, a correção ou a exclusão dos seus dados pelo nosso WhatsApp
-       <a href="<?= h(link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Gostaria de falar sobre meus dados pessoais (LGPD).')) ?>" target="_blank" rel="noopener"><?= h(formatar_telefone(config_loja('whatsapp_loja'))) ?></a>.</p>
+       <a href="<?= h(link_whatsapp(config_loja('whatsapp_loja'))) ?>" target="_blank" rel="noopener"><?= h(formatar_telefone(config_loja('whatsapp_loja'))) ?></a>.</p>
+
+    <h2>Sua conta</h2>
+    <p>A conta usa apenas o seu <strong>nome e WhatsApp</strong>, sem senha. Ela guarda o endereço de entrega e o histórico
+       dos seus pedidos, para facilitar as próximas compras. Ao usar um aparelho de outra pessoa, toque em
+       <em>Sair da conta</em> em "Minha conta" ao terminar.</p>
 
     <h2>Dados salvos no seu aparelho</h2>
     <p>Para facilitar os próximos pedidos, o seu navegador guarda o carrinho e os dados de entrega apenas neste aparelho.

@@ -46,7 +46,7 @@ $busca     = trim((string) ($_GET['q'] ?? ''));
 
 $where = ['1=1'];
 $params = [];
-if (in_array($categoria, CATEGORIAS, true)) {
+if (in_array($categoria, categorias(), true)) {
     $where[] = 'p.categoria = ?';
     $params[] = $categoria;
 }
@@ -62,7 +62,7 @@ $st = db()->prepare(
        LEFT JOIN item_pedido i ON i.id_produto = p.id_produto
       WHERE " . implode(' AND ', $where) . "
       GROUP BY p.id_produto
-      ORDER BY FIELD(p.categoria, 'Bolos', 'Doces', 'Tortas', 'Bebidas'), p.nome"
+      ORDER BY COALESCE((SELECT c.ordem FROM categoria c WHERE c.nome = p.categoria), 999), p.categoria, p.nome"
 );
 $st->execute($params);
 $produtos = $st->fetchAll();
@@ -89,7 +89,7 @@ require __DIR__ . '/../includes/admin_topo.php';
 
 <nav class="abas" aria-label="Filtrar por categoria">
   <a href="produtos.php" class="<?= $categoria === '' ? 'ativo' : '' ?>">Todas</a>
-  <?php foreach (CATEGORIAS as $cat): ?>
+  <?php foreach (categorias() as $cat): ?>
     <a href="?categoria=<?= urlencode($cat) ?>" class="<?= $categoria === $cat ? 'ativo' : '' ?>"><?= h($cat) ?></a>
   <?php endforeach; ?>
 </nav>

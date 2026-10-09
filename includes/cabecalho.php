@@ -32,7 +32,7 @@ $descricaoPagina = $descricaoPagina ?? 'Arte na Cozinha — confeitaria artesana
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,700&family=Poppins:wght@400;500;600;700&display=swap">
 
-  <link rel="stylesheet" href="assets/css/style.css?v=1.1">
+  <link rel="stylesheet" href="assets/css/style.css?v=1.2">
 
   <!-- Dados estruturados: ajudam o Google a mostrar endereço e horário da confeitaria -->
   <script type="application/ld+json"><?= json_encode([
@@ -66,6 +66,12 @@ $descricaoPagina = $descricaoPagina ?? 'Arte na Cozinha — confeitaria artesana
         <a href="index.php" class="<?= $paginaAtual === 'cardapio' ? 'ativo' : '' ?>">Cardápio</a>
         <a href="acompanhar.php" class="<?= $paginaAtual === 'acompanhar' ? 'ativo' : '' ?>">Acompanhar pedido</a>
       </nav>
+      <?php $clienteTopo = cliente_logado(); ?>
+      <a href="<?= $clienteTopo ? 'conta.php' : 'entrar.php' ?>" class="botao-conta <?= $paginaAtual === 'conta' ? 'ativo' : '' ?>"
+         aria-label="<?= $clienteTopo ? 'Minha conta' : 'Entrar' ?>">
+        <?= icone('usuario') ?>
+        <span class="botao-conta-texto"><?= $clienteTopo ? 'Olá, ' . h(explode(' ', $clienteTopo['nome'])[0]) : 'Entrar' ?></span>
+      </a>
       <a href="carrinho.php" class="botao-icone botao-carrinho" aria-label="Abrir carrinho">
         <?= icone('carrinho') ?>
         <span class="contador" id="contadorCarrinho" hidden>0</span>
@@ -75,3 +81,6 @@ $descricaoPagina = $descricaoPagina ?? 'Arte na Cozinha — confeitaria artesana
 </header>
 
 <main id="conteudo">
+<?php if (!empty($_SESSION['flash'])): ?>
+  <div class="container" style="padding-top:12px"><?= exibir_flash() ?></div>
+<?php endif; ?>

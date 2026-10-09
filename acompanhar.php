@@ -108,8 +108,7 @@ $pagamento = FORMAS_PAGAMENTO[$pedido['forma_pagamento']];
 $textoPagamento = $pedido['pago_no_site'] ? "pagamento via $pagamento confirmado" : "pagamento na entrega ($pagamento)";
 
 $novo = isset($_GET['novo']);
-$linkConfirmacao = link_whatsapp(config_loja('whatsapp_loja'), mensagem_resumo_pedido($pedido));
-$linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida sobre o pedido nº ' . $pedido['id_pedido'] . '.');
+$linkLoja = link_whatsapp(config_loja('whatsapp_loja')); // sem mensagem pronta
 ?>
 <div class="container" style="max-width:980px" id="telaPedido"
      data-pedido="<?= (int) $pedido['id_pedido'] ?>" data-token="<?= h($token) ?>" data-status="<?= h($status) ?>">
@@ -119,7 +118,8 @@ $linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida
   </div>
 
   <?php if ($novo): ?>
-    <div class="alerta alerta-sucesso">🎉 Pedido recebido! Guarde este link para acompanhar o andamento.</div>
+    <div class="alerta alerta-sucesso">🎉 Pedido recebido! Você pode acompanhar o andamento aqui
+      ou em <a href="conta.php">Minha conta</a>. A loja confirma o pedido pelo WhatsApp <?= h(formatar_telefone($pedido['telefone'])) ?>.</div>
   <?php endif; ?>
 
   <div class="layout-acompanhar">
@@ -169,15 +169,6 @@ $linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida
     </div>
 
     <div>
-      <section class="caixa-whatsapp">
-        <span class="icone"><?= icone('whatsapp') ?></span>
-        <div>
-          <strong>Confirmação pelo WhatsApp</strong>
-          <small>Envie o resumo para a loja e receba a confirmação no <?= h(formatar_telefone($pedido['telefone'])) ?>.</small><br>
-          <a class="botao botao-whatsapp" href="<?= h($linkConfirmacao) ?>" target="_blank" rel="noopener">Enviar resumo pelo WhatsApp</a>
-        </div>
-      </section>
-
       <section class="cartao" aria-labelledby="tResumo">
         <h2 id="tResumo">Resumo</h2>
         <?php foreach ($pedido['itens'] as $item): ?>

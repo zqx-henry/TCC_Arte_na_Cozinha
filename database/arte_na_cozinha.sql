@@ -10,9 +10,11 @@
 --                     acompanhamento — RF03), CONFIGURACAO (dados da loja
 --                     editáveis no painel), ENTREGA (frete por distância de
 --                     cada pedido), PROMOCAO (prazo para o fim do desconto)
---                     e CACHE_ENDERECO (endereços já localizados no mapa).
+--                     CACHE_ENDERECO (endereços já localizados no mapa)
+--                     e CATEGORIA (categorias do cardápio editáveis).
 --
 --  Versão 1.1 — frete por distância e promoções com tempo para acabar.
+--  Versão 1.2 — categorias editáveis e conta do cliente (nome + WhatsApp).
 -- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS arte_na_cozinha
@@ -22,6 +24,7 @@ CREATE DATABASE IF NOT EXISTS arte_na_cozinha
 USE arte_na_cozinha;
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS categoria;
 DROP TABLE IF EXISTS cache_endereco;
 DROP TABLE IF EXISTS promocao;
 DROP TABLE IF EXISTS entrega;
@@ -171,6 +174,18 @@ CREATE TABLE promocao (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Apoio – CATEGORIA (lista e ordem das categorias, editáveis no painel).
+-- O produto guarda o nome em produto.categoria VARCHAR(40), como no Quadro 13.
+-- ---------------------------------------------------------------------
+CREATE TABLE categoria (
+  id_categoria  INT          NOT NULL AUTO_INCREMENT,
+  nome          VARCHAR(40)  NOT NULL,
+  ordem         SMALLINT     NOT NULL DEFAULT 0,
+  PRIMARY KEY (id_categoria),
+  UNIQUE KEY uk_categoria_nome (nome)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 -- Apoio – CACHE_ENDERECO (evita repetir consultas ao OpenStreetMap)
 -- ---------------------------------------------------------------------
 CREATE TABLE cache_endereco (
@@ -211,6 +226,9 @@ INSERT INTO configuracao (chave, valor) VALUES
 ('raio_maximo_km',      '25'),
 ('tempo_preparo',       '30'),     -- minutos
 ('promo_duracao_horas', '168');    -- promoções acabam sozinhas em 7 dias
+
+INSERT INTO categoria (nome, ordem) VALUES
+('Bolos', 1), ('Doces', 2), ('Tortas', 3), ('Bebidas', 4);
 
 -- Produtos (categoria: Bolos | Doces | Tortas | Bebidas)
 INSERT INTO produto (id_produto, id_admin, nome, descricao, categoria, preco, preco_promocional, imagem, disponivel) VALUES

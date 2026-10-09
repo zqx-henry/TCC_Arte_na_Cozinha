@@ -64,8 +64,9 @@ Pronto: o site abre em qualquer celular ou computador pelo endereço da hospedag
 ### Atualizando um site que já estava publicado (versão 1.0 → 1.1)
 
 1. Envie os arquivos novos por cima dos antigos (o `includes/config.local.php` da hospedagem continua lá).
-2. No phpMyAdmin da hospedagem, importe **`database/migracao_v1.1_frete_promocoes.sql`**,
-   apagando antes a linha `USE arte_na_cozinha;`. Os pedidos e produtos existentes são mantidos.
+2. No phpMyAdmin da hospedagem, importe **`database/migracao_v1.1_frete_promocoes.sql`** e depois
+   **`database/migracao_v1.2_categorias.sql`**, apagando antes a linha `USE arte_na_cozinha;` de cada um.
+   (Se o site já estava na 1.1, importe só a 1.2.) Os pedidos e produtos existentes são mantidos.
 
 ### Frete por distância na hospedagem
 

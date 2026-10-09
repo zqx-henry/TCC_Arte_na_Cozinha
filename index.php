@@ -8,7 +8,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $produtos = db()->query(
     SQL_PRODUTO_COM_PROMO . " WHERE p.disponivel = 1
-      ORDER BY FIELD(p.categoria, 'Bolos', 'Doces', 'Tortas', 'Bebidas'), p.nome"
+      ORDER BY COALESCE((SELECT c.ordem FROM categoria c WHERE c.nome = p.categoria), 999), p.categoria, p.nome"
 )->fetchAll();
 
 // "Mais pedidos": produtos com mais unidades vendidas
@@ -117,7 +117,7 @@ require __DIR__ . '/includes/cabecalho.php';
   <nav class="categorias" aria-label="Categorias">
     <button type="button" class="chip ativo" data-categoria="Todos">Todos</button>
     <?php if ($promocoes): ?><button type="button" class="chip" data-categoria="Promoções">Promoções</button><?php endif; ?>
-    <?php foreach (CATEGORIAS as $cat): ?>
+    <?php foreach (array_intersect(categorias(), array_column($produtos, 'categoria')) as $cat): // só categorias com produtos ?>
       <button type="button" class="chip" data-categoria="<?= h($cat) ?>"><?= h($cat) ?></button>
     <?php endforeach; ?>
   </nav>

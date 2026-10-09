@@ -2,14 +2,14 @@
 /**
  * Painel – Cadastrar / editar produto (RF10 / UC10)
  * Campos da entidade PRODUTO (Quadro 13), com envio de foto.
+ * Promoções (preço promocional e prazo) ficam só na aba Promoções.
  */
 require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/admin_promocao.php';
 $admin = exigir_login();
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 $produto = [
-    'id_produto' => 0, 'nome' => '', 'descricao' => '', 'categoria' => CATEGORIAS[0],
+    'id_produto' => 0, 'nome' => '', 'descricao' => '', 'categoria' => categorias()[0] ?? '',
     'preco' => '', 'preco_promocional' => '', 'imagem' => '', 'disponivel' => 1,
     'promo_fim' => null, 'promo_modo' => null,
 ];
@@ -45,22 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produto['descricao']         = mb_substr(trim((string) $_POST['descricao']), 0, 255);
     $produto['categoria']         = (string) $_POST['categoria'];
     $produto['preco']             = ler_preco((string) $_POST['preco']);
-    $produto['preco_promocional'] = ler_preco((string) ($_POST['preco_promocional'] ?? ''));
     $produto['disponivel']        = isset($_POST['disponivel']) ? 1 : 0;
 
     if (mb_strlen($produto['nome']) < 2)                       $erros['nome'] = 'Informe o nome do produto.';
     if (mb_strlen($produto['descricao']) < 3)                  $erros['descricao'] = 'Escreva uma descrição curta.';
-    if (!in_array($produto['categoria'], CATEGORIAS, true))    $erros['categoria'] = 'Escolha uma categoria.';
+    if (!in_array($produto['categoria'], categorias(), true))    $erros['categoria'] = 'Escolha uma categoria.';
     if ($produto['preco'] === null || $produto['preco'] <= 0)  $erros['preco'] = 'Informe um preço válido.';
-    if ($produto['preco_promocional'] !== null
-        && ($produto['preco_promocional'] <= 0 || $produto['preco_promocional'] >= (float) $produto['preco'])) {
-        $erros['preco_promocional'] = 'O preço promocional deve ser menor que o preço normal (ou deixe em branco).';
-    }
-    $modoPrazo = (string) ($_POST['modo_prazo'] ?? 'automatico');
-    $fimManual = (string) ($_POST['fim_manual'] ?? '');
-    if ($produto['preco_promocional'] !== null && ($erroPrazo = validar_prazo_promocao($modoPrazo, $fimManual))) {
-        $erros['prazo'] = $erroPrazo;
-    }
 
     // Upload da foto (JPG, PNG ou WEBP até 3 MB)
     $novaImagem = null;
@@ -100,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'UPDATE produto SET nome = ?, descricao = ?, categoria = ?, preco = ?, imagem = ?, disponivel = ?
                   WHERE id_produto = ?'
             )->execute([...$dados, $id]);
-            salvar_promocao($id, $produto['preco_promocional'], $modoPrazo, $fimManual);
             if ($novaImagem && str_starts_with((string) $imagemAntiga, 'uploads/') && is_file(__DIR__ . '/../' . $imagemAntiga)) {
                 unlink(__DIR__ . '/../' . $imagemAntiga);
             }
@@ -110,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'INSERT INTO produto (nome, descricao, categoria, preco, imagem, disponivel, id_admin)
                  VALUES (?, ?, ?, ?, ?, ?, ?)'
             )->execute([...$dados, $admin['id']]);
-            salvar_promocao((int) db()->lastInsertId(), $produto['preco_promocional'], $modoPrazo, $fimManual);
             flash('sucesso', 'Produto “' . $produto['nome'] . '” cadastrado.');
         }
         redirecionar('produtos.php');
@@ -154,7 +142,7 @@ require __DIR__ . '/../includes/admin_topo.php';
       <div class="campo <?= isset($erros['categoria']) ? 'erro' : '' ?>">
         <label for="categoria">Categoria</label>
         <select id="categoria" name="categoria">
-          <?php foreach (CATEGORIAS as $cat): ?>
+          <?php foreach (categorias() as $cat): ?>
             <option <?= $produto['categoria'] === $cat ? 'selected' : '' ?>><?= h($cat) ?></option>
           <?php endforeach; ?>
         </select>
@@ -162,21 +150,18 @@ require __DIR__ . '/../includes/admin_topo.php';
       </div>
       <div class="campos campos-duplos">
         <div class="campo <?= isset($erros['preco']) ? 'erro' : '' ?>">
-          <label for="preco">Preço normal (R$)</label>
+          <label for="preco">Preço (R$)</label>
           <input id="preco" name="preco" inputmode="decimal" required placeholder="0,00" value="<?= h($fmt($produto['preco'])) ?>">
           <span class="msg-erro"><?= h($erros['preco'] ?? '') ?></span>
         </div>
-        <div class="campo <?= isset($erros['preco_promocional']) ? 'erro' : '' ?>">
-          <label for="preco_promocional">Preço promocional (opcional)</label>
-          <input id="preco_promocional" name="preco_promocional" inputmode="decimal" placeholder="em branco = sem promoção" value="<?= h($fmt($produto['preco_promocional'])) ?>">
-          <span class="msg-erro"><?= h($erros['preco_promocional'] ?? '') ?></span>
-        </div>
       </div>
-      <div class="campo <?= isset($erros['prazo']) ? 'erro' : '' ?>">
-        <?= campos_prazo_promocao('produto', $produto['promo_modo'], $produto['promo_fim']) ?>
-        <span class="msg-erro"><?= h($erros['prazo'] ?? '') ?></span>
-        <small class="dica">O prazo só vale se houver preço promocional.</small>
-      </div>
+      <?php if ($id && em_promocao($produto)): ?>
+        <p class="dica" style="margin:0">
+          🏷️ Este produto está em promoção por <strong><?= dinheiro($produto['preco_promocional']) ?></strong>
+          <?= $produto['promo_fim'] ? '(acaba em ' . h(tempo_restante($produto['promo_fim'])) . ')' : '' ?>.
+          Para mudar ou encerrar o desconto, use a aba <a href="promocoes.php">Promoções</a>.
+        </p>
+      <?php endif; ?>
       <label class="checkbox">
         <input type="checkbox" name="disponivel" <?= $produto['disponivel'] ? 'checked' : '' ?>>
         Mostrar no cardápio (disponível para pedido)

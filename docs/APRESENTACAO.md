@@ -21,6 +21,8 @@ Cada decisão do código vem de uma seção do documento:
 | 8 Testes (Quadro 21) | CT01 a CT15 executados e registrados no README |
 | Melhoria v1.1 — frete | Frete = distância da rota × **R$ 3,30/km** e tempo = preparo + trajeto, saindo da **R. Francisco Catalano, 440 – Jardim Brasilândia** (`includes/frete.php`) |
 | Melhoria v1.1 — promoções | Cada desconto tem prazo **automático** (7 dias) ou **manual**, com contagem regressiva e fim automático (`promocao`, `contagem.js`) |
+| Melhoria v1.2 — conta do cliente | Login só com nome + WhatsApp: endereço salvo, pedidos anteriores e "pedir de novo" (`entrar.php`, `conta.php`) |
+| Melhoria v1.2 — painel | Categorias editáveis (`admin/categorias.php`) e promoções separadas da edição de produto |
 
 ### Arquitetura em 3 camadas
 
@@ -74,8 +76,10 @@ Cada decisão do código vem de uma seção do documento:
 5. **Painel (Figura 11):** no computador, entre em `/admin`. O pedido aparece como **Novo**. Clique em **Aceitar**.
 6. **Tempo real:** volte ao celular. Em até 10 segundos, a linha do tempo muda para **Em preparo** (CT09).
 7. **Produtos e promoções:** altere o preço de um produto (CT08). Em **Promoções**, crie uma promoção no modo **Automático** e mostre o aviso **"Tempo automático para o fim do desconto"**. Depois crie outra no modo **Manual** terminando em 2 minutos e mostre a contagem no cardápio zerando e o preço voltando ao normal (CT15).
-8. **Loja fechada:** clique em "Loja: aberta" para fechar e mostre que o site deixa de aceitar pedidos.
-9. **Celular:** mostre o painel no celular (menu vira gaveta e tabelas viram cartões).
+8. **Conta do cliente:** toque no ícone de pessoa, entre com o nome e o WhatsApp usados no pedido e mostre os pedidos anteriores. Toque em **Pedir de novo**: o carrinho abre já com os itens, o endereço preenchido e *"Frete calculado: R$ …"* (CT16–CT18).
+9. **Categorias:** no painel, renomeie "Tortas" para "Tortas e Cheesecakes" e mostre o botão mudando no cardápio (CT19). Depois volte o nome.
+10. **Loja fechada:** clique em "Loja: aberta" para fechar e mostre que o site deixa de aceitar pedidos.
+11. **Celular:** mostre o painel no celular (menu vira gaveta e tabelas viram cartões).
 
 ---
 
@@ -111,6 +115,16 @@ O sistema tem planos B: sem rota, usa a distância em linha reta × 1,35 (desvio
 
 **Como a promoção acaba sozinha?**
 Cada promoção tem uma data de fim na tabela `promocao`, definida automaticamente (7 dias) ou manualmente pelo administrador. Toda página do site chama `expirar_promocoes()`, que tira o desconto dos produtos vencidos antes de mostrar qualquer preço. No navegador, `contagem.js` mostra a contagem regressiva usando a **hora do servidor** (não a do celular) e recarrega a página quando o tempo zera.
+
+**Por que o login não tem senha?**
+Para não criar barreira, o objetivo do TCC é um pedido "sem cadastro" (RF01). A conta usa nome + WhatsApp: se o número
+já tem pedidos, o primeiro nome precisa conferir, e há limite de tentativas. A conta guarda só o que o cliente já
+informaria em qualquer pedido (nome, WhatsApp e endereço). Uma melhoria futura seria confirmar o número por um
+código enviado pelo WhatsApp Business.
+
+**Como as categorias ficam editáveis sem mudar o DER?**
+O produto continua guardando o nome da categoria em `produto.categoria` (Quadro 13). A tabela de apoio `categoria`
+guarda a lista e a ordem. Ao renomear, uma **transação** atualiza a categoria e todos os produtos dela de uma vez.
 
 **Quanto a loja economiza?**
 Em um pedido de R$ 100 no Plano Entrega do iFood, cerca de R$ 26,50 ficam com a plataforma (Quadro 1). No site próprio, o custo fica restrito a hospedagem, domínio (R$ 40/ano) e à taxa do meio de pagamento.

@@ -69,8 +69,6 @@
 
   function aplicarFrete(dados) {
     frete = dados;
-    const km = dados && dados.distancia_km != null ? `(${String(dados.distancia_km).replace('.', ',')} km)` : '';
-    document.getElementById('freteKm').textContent = km;
     document.getElementById('valorTaxa').textContent = dados ? formatarDinheiro(dados.taxa) : 'a calcular';
     document.getElementById('linhaPrevisao').hidden = !dados;
     if (dados) document.getElementById('valorPrevisao').textContent = `${dados.tempo_min}–${dados.tempo_max} min`;
@@ -90,7 +88,7 @@
 
     const minha = ++requisicaoAtual;
     aplicarFrete(null);
-    mostrarFrete('calculando', 'Calculando frete…', 'Localizando o endereço no mapa e traçando a rota a partir da confeitaria.');
+    mostrarFrete('calculando', 'Calculando o frete…', 'Só um instante.');
 
     try {
       const resp = await fetch('api/frete.php', {
@@ -106,15 +104,9 @@
       }
       ultimoEnderecoCalculado = chave;
       aplicarFrete(json);
-      const kmTxt = json.distancia_km != null ? String(json.distancia_km).replace('.', ',') + ' km' : '';
-      if (json.metodo === 'padrao') {
-        mostrarFrete('ok', `Frete ${formatarDinheiro(json.taxa)} · ${json.tempo_min}–${json.tempo_max} min`,
-          'O serviço de mapas não respondeu agora; aplicamos a taxa padrão da loja.');
-      } else {
-        mostrarFrete('ok', `${kmTxt} da confeitaria · Frete ${formatarDinheiro(json.taxa)}`,
-          `Entrega em ${json.tempo_min}–${json.tempo_max} min (preparo + trajeto). ${kmTxt} × ${formatarDinheiro(json.valor_km)}/km`
-          + (json.aproximado ? '. Distância aproximada: não achamos o número exato, usamos a rua/bairro.' : '.'));
-      }
+      // Só o resultado: o cálculo (km × valor) fica no servidor
+      mostrarFrete('ok', `Frete calculado: ${formatarDinheiro(json.taxa)}`,
+        `Entrega estimada em ${json.tempo_min}–${json.tempo_max} min`);
       return json;
     } catch {
       if (minha === requisicaoAtual) mostrarFrete('erro', 'Sem conexão', 'Não foi possível calcular o frete. Verifique sua internet e tente de novo.');
@@ -155,11 +147,12 @@
     tel.value = v;
   });
 
-  // Lembra os dados de entrega neste aparelho (facilita o próximo pedido)
+  // Sem conta: usa os dados lembrados neste aparelho (com conta, o servidor já preencheu)
   try {
     const salvos = JSON.parse(localStorage.getItem(CHAVE_DADOS)) || {};
     ['nome', 'telefone', 'endereco', 'bairro', 'complemento'].forEach((c) => {
-      if (salvos[c]) form.elements[c].value = salvos[c];
+      const campo = form.elements[c];
+      if (salvos[c] && !campo.value && !campo.readOnly) campo.value = salvos[c];
     });
   } catch { /* ignora */ }
 

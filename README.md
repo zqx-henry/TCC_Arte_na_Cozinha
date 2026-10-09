@@ -25,6 +25,47 @@ escolhe pagar **pelo site ou na entrega** e acompanha o status em tempo real. A 
 | Carrinho com **frete calculado pela distância** e finalização sem cadastro (Figura 9) | Produtos e preços (cadastrar, editar, ocultar, excluir) |
 | Acompanhamento do pedido em tempo real (Figura 10) | Promoções com **tempo para acabar** (automático ou manual) |
 | Contagem regressiva das promoções | Configurações: endereço da loja, frete, prazos, WhatsApp, senha |
+| **Conta do cliente** (nome + WhatsApp): endereço salvo, pedidos anteriores e "pedir de novo" | **Categorias editáveis**: criar, renomear, reordenar e excluir |
+| Botão do **WhatsApp da loja** na página principal | Edição de produto separada das promoções |
+
+## Novidades da versão 1.2
+
+### 👤 Conta do cliente (login simplificado)
+
+O cliente entra só com **nome e WhatsApp**, sem senha (`entrar.php`). Na **Minha conta** (`conta.php`) ele tem:
+
+- **endereço salvo**: nome, WhatsApp e endereço já vêm preenchidos no carrinho;
+- **pedidos anteriores**, com status e detalhes;
+- **"Pedir de novo"**: coloca no carrinho os itens de um pedido antigo que ainda estão no cardápio, com os preços de hoje;
+- **pedidos em andamento** no topo, com atalho para acompanhar.
+
+A conta é criada **sozinha no primeiro pedido**. Se o WhatsApp já tem pedidos, o primeiro nome precisa conferir com o
+cadastro (sem diferenciar maiúsculas e acentos). Para evitar tentativas de adivinhar, são permitidas 8 tentativas a
+cada 10 minutos.
+
+### 💬 WhatsApp da loja
+
+- **Botão flutuante** com a logo do WhatsApp na página principal: abre a conversa com a loja **sem mensagem pronta**.
+- O cliente **não envia mais o resumo** ao finalizar. A **loja** confirma: ao clicar em **Aceitar** no painel, o atalho
+  "Avisar cliente no WhatsApp" já leva a confirmação com o resumo do pedido (RF08).
+
+### 🧾 Carrinho mais simples
+
+O quadro de frete mostra **só o resultado**: *"Frete calculado: R$ 18,81"* e, abaixo, *"Entrega estimada em 40–55 min"*.
+O cálculo (km × valor) fica no servidor.
+
+### ⏳ Contagem das promoções
+
+A contagem mostra **só a maior unidade** e vai mudando conforme o fim se aproxima: **6d** → no último dia **23h** →
+na última hora **45min** → no último minuto **30s**.
+
+### 🗂️ Painel
+
+- **Categorias** (`admin/categorias.php`): criar, renomear (os produtos são atualizados juntos), mudar a ordem dos
+  botões do cardápio e excluir (movendo os produtos para outra categoria). Categorias sem produtos ficam escondidas
+  do cliente.
+- **Editar produto** cuida só do item (nome, descrição, categoria, preço, foto e disponibilidade).
+  **Promoções ficam só na aba Promoções.** Se o produto estiver em promoção, a edição só mostra um aviso.
 
 ## Novidades da versão 1.1
 
@@ -87,7 +128,8 @@ cada parte na apresentação.
 3. Abra `http://localhost/phpmyadmin` → aba **Importar** → escolha `database/arte_na_cozinha.sql` → **Executar**.
    (ou pelo terminal: `C:\xampp\mysql\bin\mysql.exe -u root < database\arte_na_cozinha.sql`)
    > **Já tinha a versão 1.0 instalada?** Importe só `database/migracao_v1.1_frete_promocoes.sql`:
-   > ela cria as tabelas novas sem apagar os pedidos existentes.
+   > ela cria as tabelas novas sem apagar os pedidos existentes. Depois importe `database/migracao_v1.2_categorias.sql`.
+   > **Já tinha a versão 1.1?** Importe só `database/migracao_v1.2_categorias.sql`.
 4. Acesse o site: **http://localhost/artes-na-cozinha/**
 5. Acesse o painel: **http://localhost/artes-na-cozinha/admin/**
 
@@ -107,6 +149,8 @@ artes-na-cozinha/
 ├── carrinho.php           Carrinho e finalização do pedido
 ├── acompanhar.php         Acompanhamento do pedido
 ├── privacidade.php        Aviso de privacidade (LGPD)
+├── entrar.php             Login do cliente (nome + WhatsApp)
+├── conta.php              Minha conta: endereço, pedidos anteriores, pedir de novo
 ├── api/
 │   ├── pedido.php         Registra o pedido (POST JSON)
 │   ├── frete.php          Calcula frete e tempo pela distância
@@ -117,7 +161,7 @@ artes-na-cozinha/
 │   ├── pedido.php         Detalhes do pedido / comanda
 │   ├── acao_pedido.php    Atualiza o status do pedido
 │   ├── produtos.php · produto_form.php
-│   ├── promocoes.php · configuracoes.php
+│   ├── promocoes.php · categorias.php · configuracoes.php
 │   └── api_novos.php      Aviso de pedido novo
 ├── includes/              Código compartilhado (não acessível pelo navegador)
 │   ├── config.php         Configuração do banco
@@ -134,6 +178,7 @@ artes-na-cozinha/
 ├── uploads/produtos/      Fotos enviadas pelo painel
 ├── database/arte_na_cozinha.sql   Criação do banco + dados de exemplo
 ├── database/migracao_v1.1_frete_promocoes.sql   Atualiza um banco da v1.0
+├── database/migracao_v1.2_categorias.sql        Atualiza um banco da v1.1
 ├── scripts/gerar_imagens.js       Gera os SVGs da logo e dos produtos
 └── docs/                  Guia de publicação e roteiro de apresentação
 ```
@@ -143,8 +188,9 @@ artes-na-cozinha/
 As cinco entidades do DER foram criadas com **exatamente** os atributos dos Quadros 10 a 14.
 Os recursos extras usam **tabelas de apoio**, sem alterar as entidades do TCC:
 `historico_status` (horários da linha do tempo), `configuracao` (dados da loja editáveis no painel),
-`entrega` (distância e previsão de cada pedido), `promocao` (prazo de cada desconto) e
-`cache_endereco` (endereços já localizados no mapa).
+`entrega` (distância e previsão de cada pedido), `promocao` (prazo de cada desconto),
+`cache_endereco` (endereços já localizados no mapa) e `categoria` (lista e ordem das categorias; o produto continua
+guardando o nome em `produto.categoria`, como no Quadro 13). A conta do cliente usa a própria tabela `cliente`.
 
 ```mermaid
 erDiagram
@@ -156,6 +202,7 @@ erDiagram
     PEDIDO ||--|{ HISTORICO_STATUS : registra
     PEDIDO ||--o| ENTREGA : "tem frete"
     PRODUTO ||--o| PROMOCAO : "tem prazo"
+    CATEGORIA ||--o{ PRODUTO : "agrupa (pelo nome)"
 
     CLIENTE {
         int id_cliente PK
@@ -221,6 +268,11 @@ erDiagram
         datetime data_fim
         varchar modo
     }
+    CATEGORIA {
+        int id_categoria PK
+        varchar nome
+        smallint ordem
+    }
 ```
 
 ## Requisitos funcionais atendidos (Quadro 9)
@@ -234,12 +286,14 @@ erDiagram
 | RF05 | PIX, cartão e dinheiro (dinheiro só na entrega) | `carrinho.php`, validado em `api/pedido.php` |
 | RF06 | Pesquisar produtos e ver promoções | `index.php`, `assets/js/cardapio.js` |
 | RF07 | Filtrar por categoria | `index.php`, `assets/js/cardapio.js` |
-| RF08 | Confirmação pelo WhatsApp | `acompanhar.php`, `admin/acao_pedido.php` |
+| RF08 | Confirmação pelo WhatsApp (a loja envia o resumo ao aceitar o pedido) | `admin/acao_pedido.php`, `includes/bootstrap.php` |
 | RF09 | Autenticar administrador | `admin/login.php`, `includes/auth.php` |
 | RF10 | Gerenciar produtos, preços e promoções (com prazo automático/manual) | `admin/produtos.php`, `admin/produto_form.php`, `admin/promocoes.php` |
 | RF11 | Gerenciar pedidos | `admin/index.php`, `admin/pedido.php`, `admin/acao_pedido.php` |
 | Extra | Frete e tempo pela distância (R$ 3,30/km) | `includes/frete.php`, `api/frete.php`, `assets/js/finalizar.js` |
 | Extra | Promoções com tempo para acabar | `includes/bootstrap.php`, `admin/promocoes.php`, `assets/js/contagem.js` |
+| Extra | Conta do cliente (nome + WhatsApp) | `entrar.php`, `conta.php`, `assets/js/conta.js` |
+| Extra | Categorias editáveis | `admin/categorias.php` |
 
 ## Requisitos não funcionais
 
@@ -266,8 +320,13 @@ erDiagram
 | CT11 | Página inicial em até 3 s no 4G | ⏳ Medir após publicar (Lighthouse do Chrome) |
 | CT12 | Frete pela distância (km × R$ 3,30) e previsão no carrinho | ✅ Aprovado (ex.: 2,4 km → R$ 7,92, 35–50 min) |
 | CT13 | Endereço inexistente / fora do raio de entrega | ✅ Aprovado (aviso exibido, pedido bloqueado) |
-| CT14 | Promoção automática mostra o tempo para o fim | ✅ Aprovado ("Tempo automático para o fim do desconto: 6d 23h 59min") |
+| CT14 | Promoção automática mostra o tempo para o fim | ✅ Aprovado ("Tempo automático para o fim do desconto: 6d") |
 | CT15 | Promoção com fim manual acaba sozinha | ✅ Aprovado (preço volta ao normal no prazo) |
+| CT16 | Entrar com nome e WhatsApp (nome errado é recusado) | ✅ Aprovado |
+| CT17 | Carrinho já preenchido para quem tem conta e "Pedir de novo" | ✅ Aprovado |
+| CT18 | Conta criada sozinha no primeiro pedido | ✅ Aprovado |
+| CT19 | Criar, renomear, reordenar e excluir categoria | ✅ Aprovado (produtos acompanham a categoria) |
+| CT20 | Editar produto não altera a promoção | ✅ Aprovado (preço e prazo da promoção mantidos) |
 
 ## Observações
 

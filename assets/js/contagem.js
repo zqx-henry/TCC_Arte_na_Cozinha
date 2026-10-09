@@ -12,17 +12,16 @@ const Contagem = (() => {
   const diferenca = window.AGORA_SERVIDOR ? window.AGORA_SERVIDOR * 1000 - Date.now() : 0;
   const agora = () => Date.now() + diferenca;
 
-  /** 2d 04h 12min · 3h 05min 09s · 04min 33s */
+  /**
+   * Mostra só a maior unidade, que vai mudando conforme o fim se aproxima:
+   * "6d" → no último dia "23h" → na última hora "45min" → no último minuto "30s".
+   */
   function formatar(segundos) {
     const s = Math.max(0, Math.floor(segundos));
-    const d = Math.floor(s / 86400);
-    const h = Math.floor((s % 86400) / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const seg = s % 60;
-    const dois = (n) => String(n).padStart(2, '0');
-    if (d > 0) return `${d}d ${dois(h)}h ${dois(m)}min`;
-    if (h > 0) return `${h}h ${dois(m)}min ${dois(seg)}s`;
-    return `${dois(m)}min ${dois(seg)}s`;
+    if (s >= 86400) return `${Math.floor(s / 86400)}d`;
+    if (s >= 3600) return `${Math.floor(s / 3600)}h`;
+    if (s >= 60) return `${Math.floor(s / 60)}min`;
+    return `${s}s`;
   }
 
   let recarregando = false;

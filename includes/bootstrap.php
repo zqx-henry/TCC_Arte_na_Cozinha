@@ -55,7 +55,18 @@ function db(): PDO
 // ---------------------------------------------------------------------
 // Constantes do domínio
 // ---------------------------------------------------------------------
-const CATEGORIAS = ['Bolos', 'Doces', 'Tortas', 'Bebidas'];
+/**
+ * Categorias do cardápio, na ordem definida no painel (tabela de apoio "categoria").
+ * O produto continua guardando o nome da categoria em produto.categoria (Quadro 13).
+ */
+function categorias(bool $recarregar = false): array
+{
+    static $lista = null;
+    if ($lista === null || $recarregar) {
+        $lista = db()->query('SELECT nome FROM categoria ORDER BY ordem, nome')->fetchAll(PDO::FETCH_COLUMN);
+    }
+    return $lista;
+}
 
 /** Etapas do pedido (RF03) — ordem da linha do tempo */
 const STATUS_PEDIDO = [
@@ -152,16 +163,18 @@ function descrever_horas(int $horas): string
     return implode(' e ', $partes) ?: '0 h';
 }
 
-/** Tempo restante legível: "2d 04h 12min" ou "45min" */
+/**
+ * Tempo restante só na maior unidade: "6d" → no último dia "23h" →
+ * na última hora "45min" → no último minuto "30s".
+ * (Mesma regra de assets/js/contagem.js)
+ */
 function tempo_restante(string $dataFim): string
 {
     $seg = max(0, strtotime($dataFim) - time());
-    $d = intdiv($seg, 86400);
-    $h = intdiv($seg % 86400, 3600);
-    $m = intdiv($seg % 3600, 60);
-    if ($d > 0) return sprintf('%dd %02dh %02dmin', $d, $h, $m);
-    if ($h > 0) return sprintf('%dh %02dmin', $h, $m);
-    return sprintf('%dmin', max(1, $m));
+    if ($seg >= 86400) return intdiv($seg, 86400) . 'd';
+    if ($seg >= 3600)  return intdiv($seg, 3600) . 'h';
+    if ($seg >= 60)    return intdiv($seg, 60) . 'min';
+    return $seg . 's';
 }
 
 /**
@@ -412,7 +425,7 @@ function buscar_pedido(int $id): ?array
     return $pedido;
 }
 
-/** Texto do resumo do pedido para o WhatsApp */
+/** Resumo do pedido que a loja envia ao cliente pelo WhatsApp ao confirmar (RF08) */
 function mensagem_resumo_pedido(array $pedido): string
 {
     $linhas   = [];
@@ -421,21 +434,63 @@ function mensagem_resumo_pedido(array $pedido): string
     foreach ($pedido['itens'] as $item) {
         $linhas[] = $item['quantidade'] . '× ' . $item['produto'] . ' — ' . dinheiro($item['subtotal']);
     }
-    $linhas[] = 'Taxa de entrega' . ($pedido['distancia_km'] !== null ? ' (' . number_format((float) $pedido['distancia_km'], 1, ',', '') . ' km)' : '')
-              . ' — ' . dinheiro($pedido['taxa_entrega']);
+    $linhas[] = 'Frete — ' . dinheiro($pedido['taxa_entrega']);
     $linhas[] = '*Total: ' . dinheiro($pedido['valor_total']) . '*';
     $linhas[] = '';
     $linhas[] = 'Pagamento: ' . FORMAS_PAGAMENTO[$pedido['forma_pagamento']]
               . ($pedido['pago_no_site'] ? ' (pago pelo site)' : ' (na entrega)');
-    $linhas[] = 'Cliente: ' . $pedido['nome'] . ' · ' . formatar_telefone($pedido['telefone']);
     $linhas[] = 'Entrega: ' . $pedido['endereco'] . ' – ' . $pedido['bairro']
               . ($pedido['complemento'] ? ' (' . $pedido['complemento'] . ')' : '');
     if (!empty($pedido['observacao'])) {
         $linhas[] = 'Obs.: ' . $pedido['observacao'];
     }
-    $linhas[] = '';
-    $linhas[] = 'Acompanhe: ' . link_acompanhamento((int) $pedido['id_pedido']);
+    [$tMin, $tMax] = previsao_pedido($pedido);
+    $linhas[] = 'Previsão de entrega: ' . $tMin . '–' . $tMax . ' min';
     return implode("\n", $linhas);
+}
+
+// ---------------------------------------------------------------------
+// Conta do cliente (login simplificado: nome + WhatsApp, sem senha)
+// ---------------------------------------------------------------------
+
+/** "Márcia  SOUZA" -> "marcia souza" (para comparar nomes) */
+function normalizar_texto(string $texto): string
+{
+    $sem = strtr(mb_strtolower(trim($texto)), [
+        'á' => 'a', 'à' => 'a', 'ã' => 'a', 'â' => 'a', 'ä' => 'a', 'é' => 'e', 'ê' => 'e', 'è' => 'e', 'ë' => 'e',
+        'í' => 'i', 'î' => 'i', 'ì' => 'i', 'ï' => 'i', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ò' => 'o', 'ö' => 'o',
+        'ú' => 'u', 'û' => 'u', 'ù' => 'u', 'ü' => 'u', 'ç' => 'c', 'ñ' => 'n',
+    ]);
+    return preg_replace('/\s+/', ' ', $sem);
+}
+
+/** Cliente com a sessão aberta: ['id' => int|null, 'nome' => ..., 'telefone' => ...] ou null */
+function cliente_logado(): ?array
+{
+    return $_SESSION['cliente'] ?? null;
+}
+
+/** Abre a sessão do cliente. id = null quando ainda não fez nenhum pedido. */
+function entrar_cliente(?int $id, string $nome, string $telefone): void
+{
+    if (!isset($_SESSION['cliente']) || ($_SESSION['cliente']['telefone'] ?? '') !== $telefone) {
+        session_regenerate_id(true);
+    }
+    $_SESSION['cliente'] = ['id' => $id, 'nome' => $nome, 'telefone' => $telefone];
+}
+
+/** Dados completos do cliente logado (com o endereço salvo), ou null */
+function dados_cliente_logado(): ?array
+{
+    $c = cliente_logado();
+    if (!$c) {
+        return null;
+    }
+    $st = db()->prepare('SELECT * FROM cliente WHERE telefone = ? ORDER BY id_cliente DESC LIMIT 1');
+    $st->execute([$c['telefone']]);
+    $dados = $st->fetch();
+    return $dados ?: ['id_cliente' => null, 'nome' => $c['nome'], 'telefone' => $c['telefone'],
+                      'endereco' => '', 'bairro' => '', 'complemento' => ''];
 }
 
 /** Previsão de entrega do pedido: [minutos mínimos, minutos máximos] */

@@ -37,6 +37,9 @@ $texto = fn(string $campo, int $max) => mb_substr(trim(strip_tags((string) ($dad
 
 $nome        = $texto('nome', 100);
 $telefone    = so_digitos((string) ($dados['telefone'] ?? ''));
+if ($logado = cliente_logado()) {
+    $telefone = $logado['telefone']; // com conta, o pedido é sempre do WhatsApp da conta
+}
 $endereco    = $texto('endereco', 150);
 $bairro      = $texto('bairro', 60);
 $complemento = $texto('complemento', 60);
@@ -157,6 +160,9 @@ try {
 }
 
 $_SESSION['ultimo_pedido_em'] = time();
+
+// A conta do cliente nasce no primeiro pedido: na próxima vez o endereço já vem preenchido
+entrar_cliente((int) $idCliente, $nome, $telefone);
 
 responder_json([
     'ok'  => true,

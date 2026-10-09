@@ -18,6 +18,10 @@ foreach ($produtos as $p) {
     ];
 }
 
+// Cliente com conta: nome, WhatsApp e endereço já vêm preenchidos
+$cliente = dados_cliente_logado();
+$v = fn(string $campo) => h($cliente[$campo] ?? '');
+
 $tituloPagina  = 'Meu carrinho | Arte na Cozinha';
 $paginaAtual   = 'carrinho';
 $scriptsPagina = ['assets/js/finalizar.js'];
@@ -51,34 +55,42 @@ require __DIR__ . '/includes/cabecalho.php';
       </section>
 
       <section class="cartao" aria-labelledby="tEntrega">
-        <h2 id="tEntrega">Dados para entrega <small>· sem cadastro</small></h2>
+        <h2 id="tEntrega">Dados para entrega</h2>
+        <?php if ($cliente): ?>
+          <p class="aviso-conta">👋 Pedindo como <strong><?= h($cliente['nome']) ?></strong> · <?= h(formatar_telefone($cliente['telefone'])) ?>.
+            Não é você? <a href="conta.php">Trocar de conta</a></p>
+        <?php else: ?>
+          <p class="aviso-conta">Já pediu com a gente? <a href="entrar.php?voltar=carrinho.php">Entre com seu nome e WhatsApp</a>
+            e seu endereço é preenchido sozinho. Ou continue sem conta.</p>
+        <?php endif; ?>
         <div class="campos">
           <div class="campos campos-duplos">
             <div class="campo">
               <label for="nome">Nome</label>
-              <input id="nome" name="nome" autocomplete="name" maxlength="100" required placeholder=" ">
+              <input id="nome" name="nome" autocomplete="name" maxlength="100" required placeholder=" " value="<?= $v('nome') ?>">
               <span class="msg-erro">Informe seu nome.</span>
             </div>
             <div class="campo">
               <label for="telefone">WhatsApp</label>
-              <input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="(15) 99999-0000">
+              <input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" required placeholder="(15) 99999-0000"
+                     value="<?= $cliente ? h(formatar_telefone($cliente['telefone'])) : '' ?>" <?= $cliente ? 'readonly' : '' ?>>
               <span class="msg-erro">Informe um WhatsApp válido com DDD.</span>
             </div>
           </div>
           <div class="campo">
             <label for="endereco">Endereço (rua e número)</label>
-            <input id="endereco" name="endereco" autocomplete="street-address" maxlength="150" required placeholder="Rua das Flores, 120">
+            <input id="endereco" name="endereco" autocomplete="street-address" maxlength="150" required placeholder="Rua das Flores, 120" value="<?= $v('endereco') ?>">
             <span class="msg-erro">Informe o endereço de entrega.</span>
           </div>
           <div class="campos campos-duplos">
             <div class="campo">
               <label for="bairro">Bairro</label>
-              <input id="bairro" name="bairro" maxlength="60" required placeholder="Centro">
+              <input id="bairro" name="bairro" maxlength="60" required placeholder="Centro" value="<?= $v('bairro') ?>">
               <span class="msg-erro">Informe o bairro.</span>
             </div>
             <div class="campo">
               <label for="complemento">Complemento (opcional)</label>
-              <input id="complemento" name="complemento" maxlength="60" placeholder="Apto, bloco, referência">
+              <input id="complemento" name="complemento" maxlength="60" placeholder="Apto, bloco, referência" value="<?= $v('complemento') ?>">
             </div>
           </div>
           <div class="campo">
@@ -91,9 +103,8 @@ require __DIR__ . '/includes/cabecalho.php';
         <div class="caixa-frete" id="caixaFrete" data-estado="aguardando" aria-live="polite">
           <span class="caixa-frete-icone" aria-hidden="true">📍</span>
           <div>
-            <strong id="freteTitulo">Frete calculado pela distância</strong>
-            <small id="freteTexto">Preencha o endereço e o bairro para calcular o frete e o tempo de entrega
-              (<?= dinheiro(config_loja('valor_km', '3.30')) ?> por km, saindo da <?= h(config_loja('endereco_loja')) ?>).</small>
+            <strong id="freteTitulo">Frete</strong>
+            <small id="freteTexto">Preencha o endereço e o bairro para calcular o frete e o tempo de entrega.</small>
           </div>
         </div>
       </section>
@@ -129,7 +140,7 @@ require __DIR__ . '/includes/cabecalho.php';
     <aside class="coluna-resumo">
       <section class="cartao" aria-label="Resumo do pedido">
         <div class="resumo-linha"><span>Subtotal</span><span id="valorSubtotal">R$ 0,00</span></div>
-        <div class="resumo-linha"><span>Frete <small id="freteKm"></small></span><span id="valorTaxa">a calcular</span></div>
+        <div class="resumo-linha"><span>Frete</span><span id="valorTaxa">a calcular</span></div>
         <div class="resumo-linha" id="linhaPrevisao" hidden><span>Previsão de entrega</span><span id="valorPrevisao"></span></div>
         <div class="resumo-linha resumo-total"><span>Total</span><span id="valorTotal">R$ 0,00</span></div>
       </section>

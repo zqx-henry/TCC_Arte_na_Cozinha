@@ -33,7 +33,7 @@ $linkMapa     = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencod
         <h3>Atendimento</h3>
         <ul>
           <li><?= h(config_loja('horario')) ?></li>
-          <li><a href="<?= h(link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Gostaria de falar com a Arte na Cozinha.')) ?>" target="_blank" rel="noopener">WhatsApp <?= h(formatar_telefone(config_loja('whatsapp_loja'))) ?></a></li>
+          <li><a href="<?= h(link_whatsapp(config_loja('whatsapp_loja'))) ?>" target="_blank" rel="noopener">WhatsApp <?= h(formatar_telefone(config_loja('whatsapp_loja'))) ?></a></li>
           <li><a href="acompanhar.php">Acompanhar pedido</a></li>
           <li><a href="privacidade.php">Aviso de privacidade (LGPD)</a></li>
           <li><a href="admin/">Área da loja</a></li>
@@ -58,11 +58,19 @@ $linkMapa     = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencod
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<?php if (($paginaAtual ?? '') === 'cardapio' && config_loja('whatsapp_loja')): ?>
+<!-- Botão flutuante: abre a conversa com a loja no WhatsApp, sem mensagem pronta -->
+<a class="whatsapp-flutuante" href="<?= h(link_whatsapp(config_loja('whatsapp_loja'))) ?>" target="_blank" rel="noopener"
+   aria-label="Falar com a Arte na Cozinha no WhatsApp" title="Falar com a loja no WhatsApp">
+  <?= icone('whatsapp') ?>
+</a>
+<?php endif; ?>
+
 <script>window.AGORA_SERVIDOR = <?= time() ?>;</script>
-<script src="assets/js/carrinho.js?v=1.1"></script>
-<script src="assets/js/contagem.js?v=1.1"></script>
+<script src="assets/js/carrinho.js?v=1.2"></script>
+<script src="assets/js/contagem.js?v=1.2"></script>
 <?php foreach ($scriptsPagina ?? [] as $script): ?>
-<script src="<?= h($script) ?>?v=1.1"></script>
+<script src="<?= h($script) ?>?v=1.2"></script>
 <?php endforeach; ?>
 </body>
 </html>
