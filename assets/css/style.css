@@ -845,3 +845,161 @@ main { flex: 1; padding-bottom: 110px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* =====================================================================
+   v1.1 — Frete por distância e promoções com prazo
+   ===================================================================== */
+
+/* Quadro do frete no carrinho */
+.caixa-frete {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px dashed var(--cor-apoio);
+  border-radius: 14px;
+  background: var(--cor-fundo);
+}
+.caixa-frete-icone { font-size: 1.4rem; line-height: 1; }
+.caixa-frete strong { display: block; }
+.caixa-frete small { display: block; margin-top: 2px; color: var(--cor-texto-suave); font-size: .85rem; }
+.caixa-frete[data-estado="calculando"] .caixa-frete-icone { animation: pulo 1s infinite; }
+.caixa-frete[data-estado="ok"] { border-style: solid; border-color: #B8E3C8; background: var(--cor-sucesso-bg); }
+.caixa-frete[data-estado="ok"] strong { color: #13663A; }
+.caixa-frete[data-estado="erro"] { border-style: solid; border-color: #F6BDCD; background: #FFF0F4; }
+.caixa-frete[data-estado="erro"] strong { color: var(--cor-principal); }
+.resumo-linha small { color: var(--cor-texto-suave); font-size: .8rem; }
+
+/* Contador das promoções */
+.contagem-mini {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #FFF4E2;
+  color: #8A5300;
+  font-size: .78rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.contagem-mini.contagem-urgente { background: #FFE8EE; color: var(--cor-principal); animation: pulso-suave 1.6s infinite; }
+.contagem-mini.contagem-acabou { opacity: .6; }
+@keyframes pulso-suave { 50% { opacity: .65; } }
+.card-info .contagem-mini { display: table; }
+.item-carrinho .contagem-mini { display: table; }
+
+.banner-contagem {
+  margin-top: 8px;
+  font-size: .92rem;
+  opacity: .95;
+  font-variant-numeric: tabular-nums;
+}
+.banner-contagem strong {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .2);
+}
+
+/* Distância no acompanhamento */
+.previsao .distancia { margin-top: 6px; color: var(--cor-texto-suave); font-size: .85rem; }
+
+/* Rodapé: endereço e mapa */
+.rodape-endereco { margin-bottom: 10px; font-style: normal; color: #fff; line-height: 1.6; }
+.rodape-mapa {
+  margin-top: 26px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, .25);
+  background: rgba(255, 255, 255, .1);
+}
+.rodape-mapa iframe { display: block; width: 100%; height: 220px; border: 0; }
+@media (min-width: 760px) {
+  .rodape-grade { grid-template-columns: 1.3fr 1fr 1fr; }
+  .rodape-mapa iframe { height: 260px; }
+}
+
+/* =====================================================================
+   v1.2 — Conta do cliente e WhatsApp da loja
+   ===================================================================== */
+
+/* Botão "Entrar" / "Olá, Maria" no cabeçalho */
+.botao-conta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background: #fff;
+  color: var(--cor-texto);
+  font-weight: 500;
+  font-size: .92rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.botao-conta svg { width: 22px; height: 22px; flex-shrink: 0; }
+.botao-conta:hover, .botao-conta.ativo { border-color: var(--cor-secundaria); color: var(--cor-principal); }
+@media (max-width: 520px) {
+  .botao-conta { width: 48px; padding: 0; justify-content: center; }
+  .botao-conta-texto { display: none; }
+  .marca-nome { font-size: 1.3rem; }
+  .marca img { width: 42px; height: 42px; }
+}
+
+.aviso-conta {
+  margin: -4px 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--cor-apoio-claro);
+  font-size: .9rem;
+}
+
+/* Botão flutuante do WhatsApp (página principal) */
+.whatsapp-flutuante {
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  z-index: 35;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(37, 211, 102, .4);
+  transition: transform .15s;
+}
+.whatsapp-flutuante:hover { transform: scale(1.07); }
+.whatsapp-flutuante svg { width: 30px; height: 30px; }
+@media (min-width: 760px) { .whatsapp-flutuante { bottom: 28px; right: 28px; } }
+
+/* Entrar */
+.vantagens { margin: 18px 0 0; padding: 14px 16px; list-style: none; border-radius: 14px; background: var(--cor-fundo); display: grid; gap: 6px; font-size: .92rem; }
+
+/* Minha conta */
+.pedido-andamento {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--cor-principal);
+  color: #fff;
+  text-decoration: none;
+}
+.pedido-anterior { padding: 14px 0; border-top: 1px dashed var(--cor-borda); }
+.pedido-anterior:first-of-type { border-top: 0; padding-top: 0; }
+.pedido-anterior-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pedido-anterior-itens { margin: 4px 0 10px; font-size: .95rem; }
+.acoes-pedido { display: flex; flex-wrap: wrap; gap: 8px; }
+.acoes-pedido .botao { min-height: 42px; padding: 8px 16px; font-size: .92rem; }
+.acoes-pedido .botao svg { width: 18px; height: 18px; }
+@media (min-width: 760px) {
+  .layout-conta { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+}

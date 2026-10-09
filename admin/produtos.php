@@ -46,7 +46,7 @@ $busca     = trim((string) ($_GET['q'] ?? ''));
 
 $where = ['1=1'];
 $params = [];
-if (in_array($categoria, CATEGORIAS, true)) {
+if (in_array($categoria, categorias(), true)) {
     $where[] = 'p.categoria = ?';
     $params[] = $categoria;
 }
@@ -56,12 +56,13 @@ if ($busca !== '') {
 }
 
 $st = db()->prepare(
-    "SELECT p.*, COALESCE(SUM(i.quantidade), 0) AS vendidos
+    "SELECT p.*, pr.data_fim AS promo_fim, pr.modo AS promo_modo, COALESCE(SUM(i.quantidade), 0) AS vendidos
        FROM produto p
+       LEFT JOIN promocao pr ON pr.id_produto = p.id_produto
        LEFT JOIN item_pedido i ON i.id_produto = p.id_produto
       WHERE " . implode(' AND ', $where) . "
       GROUP BY p.id_produto
-      ORDER BY FIELD(p.categoria, 'Bolos', 'Doces', 'Tortas', 'Bebidas'), p.nome"
+      ORDER BY COALESCE((SELECT c.ordem FROM categoria c WHERE c.nome = p.categoria), 999), p.categoria, p.nome"
 );
 $st->execute($params);
 $produtos = $st->fetchAll();
@@ -88,7 +89,7 @@ require __DIR__ . '/../includes/admin_topo.php';
 
 <nav class="abas" aria-label="Filtrar por categoria">
   <a href="produtos.php" class="<?= $categoria === '' ? 'ativo' : '' ?>">Todas</a>
-  <?php foreach (CATEGORIAS as $cat): ?>
+  <?php foreach (categorias() as $cat): ?>
     <a href="?categoria=<?= urlencode($cat) ?>" class="<?= $categoria === $cat ? 'ativo' : '' ?>"><?= h($cat) ?></a>
   <?php endforeach; ?>
 </nav>
@@ -112,7 +113,10 @@ require __DIR__ . '/../includes/admin_topo.php';
           </td>
           <td data-rotulo="Categoria"><?= h($p['categoria']) ?></td>
           <td data-rotulo="Preço"><?= dinheiro($p['preco']) ?></td>
-          <td data-rotulo="Promoção"><?= em_promocao($p) ? '<span class="etiqueta etiqueta-preparo">' . dinheiro($p['preco_promocional']) . '</span>' : '<span class="traco">—</span>' ?></td>
+          <td data-rotulo="Promoção"><?php if (em_promocao($p)): ?>
+            <span class="etiqueta etiqueta-preparo"><?= dinheiro($p['preco_promocional']) ?></span>
+            <?php if ($p['promo_fim']): ?><small class="prazo-mini"<?= atributo_fim($p['promo_fim']) ?>>⏳ <span class="contagem-valor"><?= h(tempo_restante($p['promo_fim'])) ?></span></small><?php endif; ?>
+          <?php else: ?><span class="traco">—</span><?php endif; ?></td>
           <td data-rotulo="Vendidos"><?= (int) $p['vendidos'] ?></td>
           <td data-rotulo="Cardápio">
             <form method="post">

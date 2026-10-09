@@ -7,8 +7,8 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 
 $produtos = db()->query(
-    "SELECT * FROM produto WHERE disponivel = 1
-      ORDER BY FIELD(categoria, 'Bolos', 'Doces', 'Tortas', 'Bebidas'), nome"
+    SQL_PRODUTO_COM_PROMO . " WHERE p.disponivel = 1
+      ORDER BY COALESCE((SELECT c.ordem FROM categoria c WHERE c.nome = p.categoria), 999), p.categoria, p.nome"
 )->fetchAll();
 
 // "Mais pedidos": produtos com mais unidades vendidas
@@ -63,6 +63,9 @@ function card_produto(array $p): string
         <p><?= h($p['descricao']) ?></p>
         <span class="preco"><?= dinheiro(preco_atual($p)) ?></span>
         <?php if (em_promocao($p)): ?><span class="preco-antigo"><?= dinheiro($p['preco']) ?></span><?php endif; ?>
+        <?php if (em_promocao($p) && $p['promo_fim']): ?>
+          <div class="contagem-mini"<?= atributo_fim($p['promo_fim']) ?>>⏳ Acaba em <span class="contagem-valor"><?= h(tempo_restante($p['promo_fim'])) ?></span></div>
+        <?php endif; ?>
       </div>
       <div class="card-acao" data-acao="<?= (int) $p['id_produto'] ?>">
         <button type="button" class="botao-adicionar" data-adicionar="<?= (int) $p['id_produto'] ?>" aria-label="Adicionar <?= h($p['nome']) ?> ao carrinho">
@@ -81,7 +84,7 @@ require __DIR__ . '/includes/cabecalho.php';
 
 <div class="container">
   <?php if (loja_aberta()): ?>
-    <p class="status-loja"><strong>Aberto agora</strong> · Entrega em <?= h(config_loja('tempo_entrega')) ?> · Taxa <?= dinheiro(config_loja('taxa_entrega')) ?></p>
+    <p class="status-loja"><strong>Aberto agora</strong> · Frete <?= dinheiro(config_loja('valor_km', '3.30')) ?>/km · Tempo calculado pela distância</p>
   <?php else: ?>
     <p class="status-loja fechada"><strong>Fechado no momento</strong> · <?= h(config_loja('horario')) ?></p>
     <div class="aviso-fechada">A loja está fechada agora. Você pode montar seu carrinho e finalizar quando abrirmos. 💗</div>
@@ -102,6 +105,9 @@ require __DIR__ . '/includes/cabecalho.php';
         <span class="preco-de">de <s><?= dinheiro($destaque['preco']) ?></s> por</span>
         <span class="preco-por"><?= dinheiro(preco_atual($destaque)) ?></span>
       </p>
+      <?php if ($destaque['promo_fim']): ?>
+        <p class="banner-contagem"<?= atributo_fim($destaque['promo_fim']) ?>>⏳ Termina em <strong class="contagem-valor"><?= h(tempo_restante($destaque['promo_fim'])) ?></strong></p>
+      <?php endif; ?>
       <button type="button" class="botao" data-adicionar="<?= (int) $destaque['id_produto'] ?>">Quero esse!</button>
     </div>
     <img src="<?= h($destaque['imagem']) ?>" alt="" width="150" height="150">
@@ -111,7 +117,7 @@ require __DIR__ . '/includes/cabecalho.php';
   <nav class="categorias" aria-label="Categorias">
     <button type="button" class="chip ativo" data-categoria="Todos">Todos</button>
     <?php if ($promocoes): ?><button type="button" class="chip" data-categoria="Promoções">Promoções</button><?php endif; ?>
-    <?php foreach (CATEGORIAS as $cat): ?>
+    <?php foreach (array_intersect(categorias(), array_column($produtos, 'categoria')) as $cat): // só categorias com produtos ?>
       <button type="button" class="chip" data-categoria="<?= h($cat) ?>"><?= h($cat) ?></button>
     <?php endforeach; ?>
   </nav>

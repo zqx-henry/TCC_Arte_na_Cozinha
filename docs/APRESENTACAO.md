@@ -18,7 +18,11 @@ Cada decisão do código vem de uma seção do documento:
 | 7.1.3 Tipografia (Quadro 20) | Lora itálico (logo e destaques) + Poppins (textos, botões, preços, painel) |
 | 7.1.4 Telas (Figuras 8–11) | `index.php`, `carrinho.php`, `acompanhar.php`, `admin/index.php` |
 | 3.1.4 Viabilidade legal (LGPD) | Coleta mínima, `privacidade.php`, senha criptografada, link de pedido protegido |
-| 8 Testes (Quadro 21) | CT01 a CT11 executados e registrados no README |
+| 8 Testes (Quadro 21) | CT01 a CT15 executados e registrados no README |
+| Melhoria v1.1 — frete | Frete = distância da rota × **R$ 3,30/km** e tempo = preparo + trajeto, saindo da **R. Francisco Catalano, 440 – Jardim Brasilândia** (`includes/frete.php`) |
+| Melhoria v1.1 — promoções | Cada desconto tem prazo **automático** (7 dias) ou **manual**, com contagem regressiva e fim automático (`promocao`, `contagem.js`) |
+| Melhoria v1.2 — conta do cliente | Login só com nome + WhatsApp: endereço salvo, pedidos anteriores e "pedir de novo" (`entrar.php`, `conta.php`) |
+| Melhoria v1.2 — painel | Categorias editáveis (`admin/categorias.php`) e promoções separadas da edição de produto |
 
 ### Arquitetura em 3 camadas
 
@@ -65,14 +69,17 @@ Cada decisão do código vem de uma seção do documento:
 
 
 1. **Cardápio (Figura 8):** mostre o status "Aberto agora", a busca (digite "limao", sem acento), os filtros (Bolos, Promoções) e o banner da promoção da semana.
-2. **Carrinho (Figura 9):** adicione 2 produtos, altere quantidades e mostre o total com a taxa. Tente **finalizar vazio** para mostrar a validação (CT04).
+2. **Carrinho (Figura 9):** adicione 2 produtos, altere quantidades e tente **finalizar vazio** para mostrar a validação (CT04).
+   Digite um endereço de Sorocaba (ex.: *Rua Aparecida, 500 – Jardim Santa Rosália*): o quadro mostra **"2,4 km da confeitaria · Frete R$ 7,92"** e a previsão (CT12). Troque por um bairro mais longe para mostrar o frete mudando.
 3. **Pagamento:** preencha os dados, escolha **PIX pelo site** e mostre o QR Code de demonstração. Depois volte e mostre que "Pagar na entrega" libera **Dinheiro** e esconde o PIX (RF05).
 4. **Acompanhamento (Figura 10):** finalize e mostre o número do pedido, a previsão, a linha do tempo e o botão do WhatsApp.
 5. **Painel (Figura 11):** no computador, entre em `/admin`. O pedido aparece como **Novo**. Clique em **Aceitar**.
 6. **Tempo real:** volte ao celular. Em até 10 segundos, a linha do tempo muda para **Em preparo** (CT09).
-7. **Produtos e promoções:** altere o preço de um produto ou crie uma promoção e recarregue o cardápio para mostrar a mudança (CT08).
-8. **Loja fechada:** clique em "Loja: aberta" para fechar e mostre que o site deixa de aceitar pedidos.
-9. **Celular:** mostre o painel no celular (menu vira gaveta e tabelas viram cartões).
+7. **Produtos e promoções:** altere o preço de um produto (CT08). Em **Promoções**, crie uma promoção no modo **Automático** e mostre o aviso **"Tempo automático para o fim do desconto"**. Depois crie outra no modo **Manual** terminando em 2 minutos e mostre a contagem no cardápio zerando e o preço voltando ao normal (CT15).
+8. **Conta do cliente:** toque no ícone de pessoa, entre com o nome e o WhatsApp usados no pedido e mostre os pedidos anteriores. Toque em **Pedir de novo**: o carrinho abre já com os itens, o endereço preenchido e *"Frete calculado: R$ …"* (CT16–CT18).
+9. **Categorias:** no painel, renomeie "Tortas" para "Tortas e Cheesecakes" e mostre o botão mudando no cardápio (CT19). Depois volte o nome.
+10. **Loja fechada:** clique em "Loja: aberta" para fechar e mostre que o site deixa de aceitar pedidos.
+11. **Celular:** mostre o painel no celular (menu vira gaveta e tabelas viram cartões).
 
 ---
 
@@ -96,8 +103,28 @@ Na primeira versão, como previsto na seção 3.1.1, o sistema gera um **link de
 **Como a LGPD é atendida?**
 Coleta só nome, WhatsApp e endereço; tem aviso de privacidade; o painel exige login; a senha é criptografada; e o link de acompanhamento tem um código, para que ninguém veja o pedido de outra pessoa trocando o número.
 
-**Por que duas tabelas a mais que o DER?**
-`historico_status` guarda o horário de cada etapa, que aparece na linha do tempo da Figura 10. `configuracao` guarda taxa de entrega, WhatsApp e se a loja está aberta, editáveis no painel sem mexer no código. As 5 entidades do DER estão exatamente como nos Quadros 10–14.
+**Por que há tabelas a mais que o DER?**
+São **tabelas de apoio**, criadas para não alterar as 5 entidades do DER, que estão exatamente como nos Quadros 10–14.
+`historico_status` guarda o horário de cada etapa (linha do tempo da Figura 10). `configuracao` guarda WhatsApp, endereço da loja, valor por km e se a loja está aberta, editáveis no painel sem mexer no código. `entrega` guarda a distância e a previsão de cada pedido (ligada 1:1 ao PEDIDO). `promocao` guarda o prazo de cada desconto (ligada 1:1 ao PRODUTO). `cache_endereco` guarda os endereços já localizados no mapa.
+
+**Como o frete é calculado?**
+O endereço do cliente é localizado no mapa pelo **OpenStreetMap** (Nominatim), e a rota de carro a partir da confeitaria é calculada pelo **OSRM**. Os dois serviços são gratuitos e não exigem cadastro. Frete = distância da rota × **R$ 3,30 por km** (média brasileira); tempo = **30 min de preparo + tempo do trajeto** (+20% de margem para o trânsito). O valor é recalculado no servidor ao fechar o pedido, então ninguém consegue alterar o frete pelo navegador.
+
+**E se o serviço de mapas cair?**
+O sistema tem planos B: sem rota, usa a distância em linha reta × 1,35 (desvio médio das ruas); sem nenhum serviço de mapa, usa a taxa padrão configurada no painel, para a loja não perder a venda. Os endereços já pesquisados ficam guardados (`cache_endereco`) e não precisam ser consultados de novo.
+
+**Como a promoção acaba sozinha?**
+Cada promoção tem uma data de fim na tabela `promocao`, definida automaticamente (7 dias) ou manualmente pelo administrador. Toda página do site chama `expirar_promocoes()`, que tira o desconto dos produtos vencidos antes de mostrar qualquer preço. No navegador, `contagem.js` mostra a contagem regressiva usando a **hora do servidor** (não a do celular) e recarrega a página quando o tempo zera.
+
+**Por que o login não tem senha?**
+Para não criar barreira, o objetivo do TCC é um pedido "sem cadastro" (RF01). A conta usa nome + WhatsApp: se o número
+já tem pedidos, o primeiro nome precisa conferir, e há limite de tentativas. A conta guarda só o que o cliente já
+informaria em qualquer pedido (nome, WhatsApp e endereço). Uma melhoria futura seria confirmar o número por um
+código enviado pelo WhatsApp Business.
+
+**Como as categorias ficam editáveis sem mudar o DER?**
+O produto continua guardando o nome da categoria em `produto.categoria` (Quadro 13). A tabela de apoio `categoria`
+guarda a lista e a ordem. Ao renomear, uma **transação** atualiza a categoria e todos os produtos dela de uma vez.
 
 **Quanto a loja economiza?**
 Em um pedido de R$ 100 no Plano Entrega do iFood, cerca de R$ 26,50 ficam com a plataforma (Quadro 1). No site próprio, o custo fica restrito a hospedagem, domínio (R$ 40/ano) e à taxa do meio de pagamento.

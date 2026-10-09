@@ -2,11 +2,11 @@
 /**
  * API – Registrar pedido (UC05 Realizar pedido, inclui UC06 e UC07)
  * Recebe JSON do carrinho, valida os dados e grava CLIENTE, PEDIDO,
- * ITEM_PEDIDO e HISTORICO_STATUS em uma única transação.
+ * ITEM_PEDIDO, HISTORICO_STATUS e ENTREGA em uma única transação.
  *
- * Os preços são SEMPRE lidos do banco de dados (nunca do navegador).
+ * Os preços e o frete são SEMPRE calculados no servidor (nunca vêm do navegador).
  */
-require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/../includes/frete.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     responder_json(['ok' => false, 'erro' => 'Método não permitido.'], 405);
@@ -37,6 +37,9 @@ $texto = fn(string $campo, int $max) => mb_substr(trim(strip_tags((string) ($dad
 
 $nome        = $texto('nome', 100);
 $telefone    = so_digitos((string) ($dados['telefone'] ?? ''));
+if ($logado = cliente_logado()) {
+    $telefone = $logado['telefone']; // com conta, o pedido é sempre do WhatsApp da conta
+}
 $endereco    = $texto('endereco', 150);
 $bairro      = $texto('bairro', 60);
 $complemento = $texto('complemento', 60);
@@ -81,7 +84,7 @@ if (!$quantidades) {
 }
 
 $marcadores = implode(',', array_fill(0, count($quantidades), '?'));
-$st = db()->prepare("SELECT * FROM produto WHERE disponivel = 1 AND id_produto IN ($marcadores)");
+$st = db()->prepare(SQL_PRODUTO_COM_PROMO . " WHERE p.disponivel = 1 AND p.id_produto IN ($marcadores)");
 $st->execute(array_keys($quantidades));
 $produtos = array_column($st->fetchAll(), null, 'id_produto');
 
@@ -97,7 +100,16 @@ foreach ($quantidades as $id => $qtd) {
     $subtotalPedido += $sub;
     $linhas[] = [$id, $qtd, $preco, $sub];
 }
-$taxa  = round((float) config_loja('taxa_entrega', '0'), 2);
+// Frete por distância: reaproveita o cálculo mostrado no carrinho (até 30 min) ou calcula agora
+$chaveFrete = normalizar_endereco("$endereco|$bairro");
+$frete = $_SESSION['frete'][$chaveFrete] ?? null;
+if (!$frete || $frete['em'] < time() - 1800) {
+    $frete = calcular_frete($endereco, $bairro);
+}
+if (!$frete['ok']) {
+    responder_json(['ok' => false, 'erro' => $frete['erro']], 422);
+}
+$taxa  = round((float) $frete['taxa'], 2);
 $total = round($subtotalPedido + $taxa, 2);
 
 // ---------------------------------------------------------------------
@@ -137,6 +149,9 @@ try {
     $pdo->prepare('INSERT INTO historico_status (id_pedido, status, data_hora) VALUES (?, \'recebido\', NOW())')
         ->execute([$idPedido]);
 
+    $pdo->prepare('INSERT INTO entrega (id_pedido, distancia_km, tempo_min, tempo_max, metodo) VALUES (?, ?, ?, ?, ?)')
+        ->execute([$idPedido, $frete['distancia_km'], $frete['tempo_min'], $frete['tempo_max'], $frete['metodo']]);
+
     $pdo->commit();
 } catch (Throwable $e) {
     $pdo->rollBack();
@@ -145,6 +160,9 @@ try {
 }
 
 $_SESSION['ultimo_pedido_em'] = time();
+
+// A conta do cliente nasce no primeiro pedido: na próxima vez o endereço já vem preenchido
+entrar_cliente((int) $idCliente, $nome, $telefone);
 
 responder_json([
     'ok'  => true,

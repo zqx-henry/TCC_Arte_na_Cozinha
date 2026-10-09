@@ -98,19 +98,17 @@ foreach ($pedido['historico'] as $hst) {
     $horarios[$hst['status']] = hora($hst['data_hora']);
 }
 
-// Previsão de entrega a partir do tempo configurado (ex.: "40–60 min")
-preg_match_all('/\d+/', config_loja('tempo_entrega', '40-60'), $m);
-$minMin = (int) ($m[0][0] ?? 40);
-$minMax = (int) ($m[0][count($m[0]) - 1] ?? 60);
+// Previsão calculada pela distância no momento do pedido (preparo + trajeto)
+[$minMin, $minMax] = previsao_pedido($pedido);
 $inicio = strtotime($pedido['data_hora']);
+$km = $pedido['distancia_km'] !== null ? number_format((float) $pedido['distancia_km'], 1, ',', '') . ' km' : null;
 $previsao = date('H:i', $inicio + $minMin * 60) . ' – ' . date('H:i', $inicio + $minMax * 60);
 
 $pagamento = FORMAS_PAGAMENTO[$pedido['forma_pagamento']];
 $textoPagamento = $pedido['pago_no_site'] ? "pagamento via $pagamento confirmado" : "pagamento na entrega ($pagamento)";
 
 $novo = isset($_GET['novo']);
-$linkConfirmacao = link_whatsapp(config_loja('whatsapp_loja'), mensagem_resumo_pedido($pedido));
-$linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida sobre o pedido nº ' . $pedido['id_pedido'] . '.');
+$linkLoja = link_whatsapp(config_loja('whatsapp_loja')); // sem mensagem pronta
 ?>
 <div class="container" style="max-width:980px" id="telaPedido"
      data-pedido="<?= (int) $pedido['id_pedido'] ?>" data-token="<?= h($token) ?>" data-status="<?= h($status) ?>">
@@ -120,7 +118,8 @@ $linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida
   </div>
 
   <?php if ($novo): ?>
-    <div class="alerta alerta-sucesso">🎉 Pedido recebido! Guarde este link para acompanhar o andamento.</div>
+    <div class="alerta alerta-sucesso">🎉 Pedido recebido! Você pode acompanhar o andamento aqui
+      ou em <a href="conta.php">Minha conta</a>. A loja confirma o pedido pelo WhatsApp <?= h(formatar_telefone($pedido['telefone'])) ?>.</div>
   <?php endif; ?>
 
   <div class="layout-acompanhar">
@@ -137,6 +136,9 @@ $linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida
           <p class="horario"><?= h($previsao) ?></p>
         <?php endif; ?>
         <p class="endereco"><?= h($pedido['endereco']) ?> – <?= h($pedido['bairro']) ?></p>
+        <?php if ($km): ?>
+          <p class="distancia">📍 <?= h($km) ?> da confeitaria · saindo da <?= h(config_loja('endereco_loja')) ?></p>
+        <?php endif; ?>
       </section>
 
       <section class="cartao" aria-labelledby="tAndamento">
@@ -167,21 +169,12 @@ $linkLoja = link_whatsapp(config_loja('whatsapp_loja'), 'Olá! Tenho uma dúvida
     </div>
 
     <div>
-      <section class="caixa-whatsapp">
-        <span class="icone"><?= icone('whatsapp') ?></span>
-        <div>
-          <strong>Confirmação pelo WhatsApp</strong>
-          <small>Envie o resumo para a loja e receba a confirmação no <?= h(formatar_telefone($pedido['telefone'])) ?>.</small><br>
-          <a class="botao botao-whatsapp" href="<?= h($linkConfirmacao) ?>" target="_blank" rel="noopener">Enviar resumo pelo WhatsApp</a>
-        </div>
-      </section>
-
       <section class="cartao" aria-labelledby="tResumo">
         <h2 id="tResumo">Resumo</h2>
         <?php foreach ($pedido['itens'] as $item): ?>
           <div class="resumo-linha"><span><?= (int) $item['quantidade'] ?>× <?= h($item['produto']) ?></span><span><?= dinheiro($item['subtotal']) ?></span></div>
         <?php endforeach; ?>
-        <div class="resumo-linha"><span>Taxa de entrega</span><span><?= dinheiro($pedido['taxa_entrega']) ?></span></div>
+        <div class="resumo-linha"><span>Frete<?= $km ? ' (' . h($km) . ')' : '' ?></span><span><?= dinheiro($pedido['taxa_entrega']) ?></span></div>
         <div class="resumo-linha resumo-total">
           <span>Total <?= $pedido['pago_no_site'] ? 'pago' : 'a pagar' ?> (<?= h($pagamento) ?>)</span>
           <span><?= dinheiro($pedido['valor_total']) ?></span>

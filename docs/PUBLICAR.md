@@ -57,7 +57,23 @@ Qualquer hospedagem com **PHP 8** e **MySQL** serve (seção 6.1, RNF04). Exempl
 3. Entre em `https://SEU-SITE/admin/`, faça login e **troque a senha** em **Configurações**.
 4. Em **Configurações**, coloque o **WhatsApp real** da loja.
 
+5. Em **Configurações → Frete por distância**, confira o endereço da loja, o valor por km e o raio de entrega.
+
 Pronto: o site abre em qualquer celular ou computador pelo endereço da hospedagem. 🎉
+
+### Atualizando um site que já estava publicado (versão 1.0 → 1.1)
+
+1. Envie os arquivos novos por cima dos antigos (o `includes/config.local.php` da hospedagem continua lá).
+2. No phpMyAdmin da hospedagem, importe **`database/migracao_v1.1_frete_promocoes.sql`** e depois
+   **`database/migracao_v1.2_categorias.sql`**, apagando antes a linha `USE arte_na_cozinha;` de cada um.
+   (Se o site já estava na 1.1, importe só a 1.2.) Os pedidos e produtos existentes são mantidos.
+
+### Frete por distância na hospedagem
+
+O cálculo do frete consulta dois serviços gratuitos pela internet: `nominatim.openstreetmap.org` (mapa) e
+`router.project-osrm.org` (rota). Algumas hospedagens gratuitas **bloqueiam conexões de saída**. Nesse caso
+o site continua funcionando, mas cobra a **taxa padrão** das Configurações. Para testar, faça um pedido de
+teste: se o carrinho mostrar "X km da confeitaria", o cálculo por distância está funcionando.
 
 > Alternativas com PHP + MySQL: Hostinger, HostGator, Locaweb (pagas, com domínio `.com.br`)
 > ou AwardSpace (gratuita).
@@ -92,5 +108,7 @@ Não precisa de conta. O link muda a cada vez que o comando é executado.
 - [ ] Senha do painel trocada
 - [ ] WhatsApp da loja configurado
 - [ ] Loja marcada como **aberta**
+- [ ] Frete calculando por km (carrinho mostra "X km da confeitaria")
+- [ ] Pelo menos uma promoção ativa com prazo (para mostrar a contagem regressiva)
 - [ ] Testado no celular (Android e iPhone) — CT10
 - [ ] Tempo de carregamento medido no Chrome (F12 → Lighthouse) — CT11

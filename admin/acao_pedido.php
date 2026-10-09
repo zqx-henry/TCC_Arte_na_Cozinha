@@ -46,7 +46,7 @@ $pdo->commit();
 $pedido = buscar_pedido($id);
 $primeiroNome = explode(' ', trim($pedido['nome']))[0];
 $mensagens = [
-    'em_preparo'   => "Olá, {$primeiroNome}! Seu pedido nº {$id} da Arte na Cozinha foi aceito e já está em preparo. 🧁",
+    'em_preparo'   => "Olá, {$primeiroNome}! Seu pedido foi confirmado ✅ e já está em preparo. 🧁\n\n" . mensagem_resumo_pedido($pedido),
     'saiu_entrega' => "Olá, {$primeiroNome}! Seu pedido nº {$id} saiu para entrega e logo chega aí. 🛵",
     'entregue'     => "Olá, {$primeiroNome}! Seu pedido nº {$id} foi entregue. Obrigado pela preferência! 💗",
     'cancelado'    => "Olá, {$primeiroNome}. Infelizmente o pedido nº {$id} da Arte na Cozinha precisou ser cancelado. Podemos ajudar?",
