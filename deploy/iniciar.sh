@@ -18,7 +18,7 @@ for i in $(seq 1 30); do
 done
 
 if ! mariadb -e "USE arte_na_cozinha; SELECT 1 FROM produto LIMIT 1" > /dev/null 2>&1; then
-    mariadb < /var/www/html/database/arte_na_cozinha.sql
+    mariadb --default-character-set=utf8mb4 < /var/www/html/database/arte_na_cozinha.sql
 fi
 mariadb -e "CREATE USER IF NOT EXISTS 'site'@'127.0.0.1' IDENTIFIED BY '$DB_SENHA';
             ALTER USER 'site'@'127.0.0.1' IDENTIFIED BY '$DB_SENHA';
