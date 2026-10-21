@@ -102,6 +102,7 @@ require __DIR__ . '/includes/cabecalho.php';
         <!-- Frete calculado pela distância até a confeitaria -->
         <div class="caixa-frete" id="caixaFrete" data-estado="aguardando" aria-live="polite">
           <span class="caixa-frete-icone" aria-hidden="true">📍</span>
+          <span class="frete-girando" aria-hidden="true"></span>
           <div>
             <strong id="freteTitulo">Frete</strong>
             <small id="freteTexto">Preencha o endereço e o bairro para calcular o frete e o tempo de entrega.</small>

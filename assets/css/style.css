@@ -370,6 +370,8 @@ main { flex: 1; padding-bottom: 110px; }
   transition: box-shadow .2s, transform .2s;
 }
 .card-produto:hover { box-shadow: var(--sombra); }
+/* O display: grid acima venceria o atributo hidden; sem isso o filtro de categorias não esconde nada */
+.card-produto[hidden], .secao[hidden], .vazio[hidden] { display: none; }
 .card-produto.indisponivel { opacity: .6; }
 
 .card-foto {
@@ -852,6 +854,8 @@ main { flex: 1; padding-bottom: 110px; }
 
 /* Quadro do frete no carrinho */
 .caixa-frete {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -861,10 +865,41 @@ main { flex: 1; padding-bottom: 110px; }
   border-radius: 14px;
   background: var(--cor-fundo);
 }
+/* Mini carregamento enquanto o frete é calculado */
+.frete-girando {
+  display: none;
+  flex: none;
+  width: 22px; height: 22px;
+  border: 3px solid var(--cor-apoio);
+  border-top-color: var(--cor-principal);
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+}
+.caixa-frete[data-estado="calculando"] .frete-girando { display: inline-block; }
+.caixa-frete[data-estado="calculando"] .caixa-frete-icone { display: none; }
+.caixa-frete[data-estado="calculando"]::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 3px; width: 35%;
+  background: var(--cor-principal);
+  border-radius: 3px;
+  animation: barra-frete 1.1s ease-in-out infinite;
+}
+@keyframes barra-frete { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
+.taxa-girando {
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 2px solid var(--cor-apoio);
+  border-top-color: var(--cor-principal);
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+}
 .caixa-frete-icone { font-size: 1.4rem; line-height: 1; }
 .caixa-frete strong { display: block; }
 .caixa-frete small { display: block; margin-top: 2px; color: var(--cor-texto-suave); font-size: .85rem; }
-.caixa-frete[data-estado="calculando"] .caixa-frete-icone { animation: pulo 1s infinite; }
 .caixa-frete[data-estado="ok"] { border-style: solid; border-color: #B8E3C8; background: var(--cor-sucesso-bg); }
 .caixa-frete[data-estado="ok"] strong { color: #13663A; }
 .caixa-frete[data-estado="erro"] { border-style: solid; border-color: #F6BDCD; background: #FFF0F4; }
