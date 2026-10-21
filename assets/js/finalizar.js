@@ -58,6 +58,7 @@
   const caixaFrete = document.getElementById('caixaFrete');
   const freteTitulo = document.getElementById('freteTitulo');
   const freteTexto = document.getElementById('freteTexto');
+  const textoInicialFrete = freteTexto.textContent;
   let ultimoEnderecoCalculado = '';
   let requisicaoAtual = 0;
 
@@ -65,6 +66,12 @@
     caixaFrete.dataset.estado = estado;
     freteTitulo.textContent = titulo;
     freteTexto.textContent = texto;
+  }
+
+  /** Mostra o carregamento na caixa do frete e no resumo do pedido */
+  function mostrarCalculando() {
+    mostrarFrete('calculando', 'Calculando o frete…', 'Procurando seu endereço no mapa, só um instante.');
+    document.getElementById('valorTaxa').innerHTML = '<span class="taxa-girando" aria-hidden="true"></span>calculando…';
   }
 
   function aplicarFrete(dados) {
@@ -80,15 +87,21 @@
     const bairro = form.elements.bairro.value.trim();
     const chave = `${endereco}|${bairro}`.toLowerCase();
     if (endereco.length < 5 || bairro.length < 2) {
+      ++requisicaoAtual; // descarta um cálculo que ainda esteja em andamento
       aplicarFrete(null);
+      mostrarFrete('aguardando', 'Frete', textoInicialFrete);
       ultimoEnderecoCalculado = '';
       return null;
     }
-    if (!forcar && chave === ultimoEnderecoCalculado && frete) return frete;
+    if (!forcar && chave === ultimoEnderecoCalculado && frete) {
+      mostrarFrete('ok', `Frete calculado: ${formatarDinheiro(frete.taxa)}`,
+        `Entrega estimada em ${frete.tempo_min}–${frete.tempo_max} min`);
+      return frete;
+    }
 
     const minha = ++requisicaoAtual;
     aplicarFrete(null);
-    mostrarFrete('calculando', 'Calculando o frete…', 'Só um instante.');
+    mostrarCalculando();
 
     try {
       const resp = await fetch('api/frete.php', {
@@ -118,6 +131,11 @@
   ['endereco', 'bairro'].forEach((campo) => {
     form.elements[campo].addEventListener('input', () => {
       clearTimeout(esperaFrete);
+      // O carregamento aparece já enquanto o cliente digita, não só depois da espera
+      const endereco = form.elements.endereco.value.trim();
+      const bairro = form.elements.bairro.value.trim();
+      const mudou = `${endereco}|${bairro}`.toLowerCase() !== ultimoEnderecoCalculado;
+      if (endereco.length >= 5 && bairro.length >= 2 && mudou) { ++requisicaoAtual; aplicarFrete(null); mostrarCalculando(); }
       esperaFrete = setTimeout(calcularFrete, 1200); // espera o cliente parar de digitar
     });
     form.elements[campo].addEventListener('change', () => { clearTimeout(esperaFrete); calcularFrete(); });
