@@ -1,0 +1,10 @@
+# Publicação gratuita no Render.com (botão "Deploy to Render" do README).
+# A cada push na branch main o site é atualizado sozinho.
+services:
+  - type: web
+    name: arte-na-cozinha
+    runtime: docker
+    plan: free
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /index.php

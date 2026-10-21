@@ -121,6 +121,11 @@ No servidor, `expirar_promocoes()` roda no início de cada página, então ningu
 Sem frameworks nem bibliotecas externas: todo o código foi escrito pelo grupo, o que facilita explicar
 cada parte na apresentação.
 
+## Ver o site online (sem XAMPP)
+
+O site pode ser publicado de graça no **Render.com** com o `Dockerfile` deste repositório: o banco é criado
+sozinho e cada push na `main` atualiza o site. Passo a passo em [`docs/PUBLICAR.md`](docs/PUBLICAR.md#caminho-r--rendercom-link-fixo-grátis-atualiza-sozinho).
+
 ## Como rodar no computador (XAMPP)
 
 1. Instale o [XAMPP](https://www.apachefriends.org/) e copie esta pasta para `C:\xampp\htdocs\`.

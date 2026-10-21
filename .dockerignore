@@ -1,0 +1,6 @@
+.git
+.claude
+.vscode
+.idea
+node_modules
+includes/config.local.php

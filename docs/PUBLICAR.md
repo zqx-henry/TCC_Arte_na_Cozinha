@@ -1,8 +1,37 @@
 # Como publicar o site e acessar de qualquer lugar
 
-Há dois caminhos. O **Caminho A** é o definitivo: o site fica no ar 24 horas, com endereço próprio.
-O **Caminho B** é rápido para uma demonstração: o site roda no seu computador e ganha um link público
-temporário.
+Há três caminhos. O **Caminho R** é o mais fácil para mandar um link a alguém (professor, banca):
+o site fica na nuvem e se atualiza sozinho a cada mudança no GitHub. O **Caminho A** usa uma
+hospedagem PHP + MySQL tradicional. O **Caminho B** é rápido para uma demonstração a partir do seu
+computador, com um link público temporário.
+
+---
+
+## Caminho R — Render.com (link fixo, grátis, atualiza sozinho)
+
+O repositório já tem um `Dockerfile` que monta Apache + PHP 8 + MariaDB num só servidor e importa
+`database/arte_na_cozinha.sql` automaticamente. Não precisa criar banco nem enviar arquivos.
+
+1. Acesse <https://dashboard.render.com/register> e clique em **GitHub** para entrar com a conta do GitHub
+   (não pede cartão de crédito no plano gratuito).
+2. Clique em **New +** → **Web Service** → escolha o repositório **TCC_Arte_na_Cozinha**
+   (se ele não aparecer, clique em **Configure account** e libere o acesso a esse repositório).
+3. Preencha:
+   - **Name:** `arte-na-cozinha` (vira o endereço `https://arte-na-cozinha.onrender.com`;
+     se o nome já existir, o Render acrescenta letras no final)
+   - **Branch:** `main` · **Language/Runtime:** `Docker` · **Instance Type:** `Free`
+4. Clique em **Deploy Web Service** e espere uns 5 minutos até aparecer **Live**.
+   O link fica no topo da página do serviço.
+
+Depois disso, todo push (ou PR aprovado) na `main` publica a versão nova sozinho.
+
+**Bom saber sobre o plano gratuito:**
+- Depois de 15 minutos sem visitas o servidor "dorme". O **primeiro acesso** depois disso demora
+  cerca de 1 minuto para abrir; os seguintes são rápidos. Abra o link um pouco antes de apresentar.
+- Quando o servidor reinicia, o banco volta para os **dados de demonstração** do
+  `arte_na_cozinha.sql` (pedidos de teste e mudanças feitas no painel são apagados). Para um site de
+  verdade, use o Caminho A.
+- O painel continua em `/admin/` com o login do README.
 
 ---
 
