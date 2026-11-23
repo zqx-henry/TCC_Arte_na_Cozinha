@@ -28,6 +28,21 @@ escolhe pagar **pelo site ou na entrega** e acompanha o status em tempo real. A 
 | **Conta do cliente** (nome + WhatsApp): endereço salvo, pedidos anteriores e "pedir de novo" | **Categorias editáveis**: criar, renomear, reordenar e excluir |
 | Botão do **WhatsApp da loja** na página principal | Edição de produto separada das promoções |
 
+## Novidades da versão 1.3
+
+### 📷 Fotos reais no cardápio
+As ilustrações foram trocadas por **fotos reais** de cada produto, do **Wikimedia Commons**, com licenças livres
+(domínio público ou Creative Commons). Os autores e as licenças estão na página **Créditos das fotos**
+(`creditos.php`, link no rodapé), como as licenças exigem. Para usar as fotos da própria confeitaria, basta
+enviá-las em **Painel → Produtos e preços → Editar**.
+
+### 📍 QR Code da rota para o entregador
+No painel, o detalhe de cada pedido em aberto mostra um **QR Code**. O entregador aponta a câmera do celular e o
+**Google Maps abre com a rota** de onde ele estiver até o endereço do cliente (rua, número, bairro e cidade).
+O QR também sai na **comanda impressa**, para colar na embalagem. Ele é gerado no próprio navegador, com a
+biblioteca livre *qrcode-generator* (MIT, em `assets/js/vendor/`), sem enviar o endereço do cliente a nenhum
+serviço externo (LGPD).
+
 ## Novidades da versão 1.2
 
 ### 👤 Conta do cliente (login simplificado)
@@ -154,6 +169,7 @@ artes-na-cozinha/
 ├── carrinho.php           Carrinho e finalização do pedido
 ├── acompanhar.php         Acompanhamento do pedido
 ├── privacidade.php        Aviso de privacidade (LGPD)
+├── creditos.php           Créditos das fotos do cardápio
 ├── entrar.php             Login do cliente (nome + WhatsApp)
 ├── conta.php              Minha conta: endereço, pedidos anteriores, pedir de novo
 ├── api/
@@ -178,7 +194,8 @@ artes-na-cozinha/
 ├── assets/
 │   ├── css/style.css      Estilos do site (Apêndice A)
 │   ├── css/admin.css      Estilos do painel
-│   ├── js/                carrinho, cardápio, finalização, acompanhamento, contagem, painel
+│   ├── js/                carrinho, cardápio, finalização, acompanhamento, contagem, painel, QR da entrega
+│   │   └── vendor/qrcode.js   biblioteca qrcode-generator (MIT)
 │   └── img/               Logotipo (SVG) e imagens ilustrativas dos produtos
 ├── uploads/produtos/      Fotos enviadas pelo painel
 ├── database/arte_na_cozinha.sql   Criação do banco + dados de exemplo
@@ -332,11 +349,13 @@ erDiagram
 | CT18 | Conta criada sozinha no primeiro pedido | ✅ Aprovado |
 | CT19 | Criar, renomear, reordenar e excluir categoria | ✅ Aprovado (produtos acompanham a categoria) |
 | CT20 | Editar produto não altera a promoção | ✅ Aprovado (preço e prazo da promoção mantidos) |
+| CT21 | Fotos reais no cardápio e créditos das fotos | ✅ Aprovado (17 fotos com autor e licença) |
+| CT22 | QR Code da rota no pedido aberto e na comanda | ✅ Aprovado (link do Google Maps com o endereço do cliente; conferir lendo com o celular) |
 
 ## Observações
 
 - O **pagamento on-line é simulado** (tela de PIX e cartão de demonstração). Na versão final, ele deve ser integrado a um meio de pagamento (Mercado Pago, PagSeguro etc.), conforme o Quadro 4.
-- Produtos, nomes, preços e imagens são **ilustrativos**, como nas Figuras 8 a 11 do TCC.
+- Produtos, nomes, preços e fotos são **ilustrativos**, como nas Figuras 8 a 11 do TCC. As fotos são do Wikimedia Commons (veja `creditos.php`).
 - O logotipo é o **provisório** da seção 7.1.1, recriado em SVG vetorial.
 - Os serviços de mapa (OpenStreetMap e OSRM) são **gratuitos** e têm limite de uso (1 consulta por segundo).
   O sistema guarda os endereços já pesquisados e limita as consultas por visitante. Para um volume grande de
