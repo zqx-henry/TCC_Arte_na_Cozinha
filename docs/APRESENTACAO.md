@@ -70,10 +70,11 @@ Cada decisão do código vem de uma seção do documento:
 
 1. **Cardápio (Figura 8):** mostre o status "Aberto agora", a busca (digite "limao", sem acento), os filtros (Bolos, Promoções) e o banner da promoção da semana.
 2. **Carrinho (Figura 9):** adicione 2 produtos, altere quantidades e tente **finalizar vazio** para mostrar a validação (CT04).
-   Digite um endereço de Sorocaba (ex.: *Rua Aparecida, 500 – Jardim Santa Rosália*): o quadro mostra **"2,4 km da confeitaria · Frete R$ 7,92"** e a previsão (CT12). Troque por um bairro mais longe para mostrar o frete mudando.
+   Digite um endereço de Sorocaba (ex.: *Rua Aparecida, 500 – Jardim Santa Rosália*): o quadro mostra **"Frete calculado: R$ 7,92"** e a entrega estimada (CT12). Troque por um bairro mais longe para mostrar o frete mudando.
 3. **Pagamento:** preencha os dados, escolha **PIX pelo site** e mostre o QR Code de demonstração. Depois volte e mostre que "Pagar na entrega" libera **Dinheiro** e esconde o PIX (RF05).
 4. **Acompanhamento (Figura 10):** finalize e mostre o número do pedido, a previsão, a linha do tempo e o botão do WhatsApp.
 5. **Painel (Figura 11):** no computador, entre em `/admin`. O pedido aparece como **Novo**. Clique em **Aceitar**.
+   Abra o pedido e mostre o **QR Code do entregador**: aponte a câmera do celular e o Google Maps abre com a rota até o cliente (CT22).
 6. **Tempo real:** volte ao celular. Em até 10 segundos, a linha do tempo muda para **Em preparo** (CT09).
 7. **Produtos e promoções:** altere o preço de um produto (CT08). Em **Promoções**, crie uma promoção no modo **Automático** e mostre o aviso **"Tempo automático para o fim do desconto"**. Depois crie outra no modo **Manual** terminando em 2 minutos e mostre a contagem no cardápio zerando e o preço voltando ao normal (CT15).
 8. **Conta do cliente:** toque no ícone de pessoa, entre com o nome e o WhatsApp usados no pedido e mostre os pedidos anteriores. Toque em **Pedir de novo**: o carrinho abre já com os itens, o endereço preenchido e *"Frete calculado: R$ …"* (CT16–CT18).
@@ -131,7 +132,33 @@ Em um pedido de R$ 100 no Plano Entrega do iFood, cerca de R$ 26,50 ficam com a 
 
 ---
 
-## 4. Melhorias futuras (Conclusão do TCC)
+## 4. Diferenciais do sistema (o que não é "só mais um site de confeitaria")
+
+Já implementados:
+
+| Diferencial | Por que importa |
+|---|---|
+| **Frete pela distância real** (rota × R$ 3,30/km) | Preço justo para perto e longe; plataformas genéricas cobram taxa fixa ou por faixa |
+| **QR Code da rota para o entregador** | Entregador não digita endereço: aponta a câmera e sai dirigindo. Menos erro de entrega |
+| **Promoções que acabam sozinhas** (automático ou data marcada) | A loja não esquece desconto ligado; a contagem cria senso de urgência no cliente |
+| **Conta só com nome + WhatsApp** e "Pedir de novo" | Sem senha nem cadastro longo; recompra em um toque (confeitaria vive de cliente fiel) |
+| **Sem comissão por pedido** | Comparado ao iFood (até ~26,5% por pedido, Quadro 1) |
+| **LGPD desde o projeto** | Link de pedido com código, coleta mínima, QR gerado sem enviar dados a terceiros |
+| **Funciona no navegador**, sem instalar app | Barreira zero para cliente novo (Quadro 3) |
+
+Ideias para apresentar como evolução (não implementadas):
+
+- **Agendamento de encomendas** com data e hora de retirada/entrega — essencial para bolos de festa, que o iFood não atende bem.
+- **Monte seu bolo**: o cliente escolhe massa, recheio, cobertura e tamanho, com preço calculado na hora.
+- **Calendário de produção** no painel: quantos bolos e de quais sabores fazer em cada dia.
+- **Fidelidade pelo WhatsApp**: a cada 10 pedidos, um docinho grátis (o histórico já existe na conta do cliente).
+- **Avaliação pós-entrega** com foto, exibida no cardápio como prova social.
+- **Rastreio do entregador em tempo real** no mapa, a partir do celular dele (o QR já abre a rota).
+- **Alerta de estoque**: produto some do cardápio sozinho quando acaba a produção do dia.
+
+---
+
+## 5. Melhorias futuras (Conclusão do TCC)
 
 - Integração com meio de pagamento real (PIX automático / cartão)
 - Envio automático pelo WhatsApp Business API

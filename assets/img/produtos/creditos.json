@@ -1,0 +1,138 @@
+[
+  {
+    "produto": "cupcake-red-velvet",
+    "arquivo": "assets/img/produtos/cupcake-red-velvet.jpg",
+    "titulo": "Red Velvet Cupcake.jpg",
+    "autor": "User:luciamad",
+    "licenca": "CC BY-SA 3.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Red_Velvet_Cupcake.jpg"
+  },
+  {
+    "produto": "brigadeiro-gourmet",
+    "arquivo": "assets/img/produtos/brigadeiro-gourmet.jpg",
+    "titulo": "Brigadeiro.jpg",
+    "autor": "User Mayra (Maych) on Flickr",
+    "licenca": "CC BY-SA 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Brigadeiro.jpg"
+  },
+  {
+    "produto": "bolo-chocolate",
+    "arquivo": "assets/img/produtos/bolo-chocolate.jpg",
+    "titulo": "Whipped Chocolate Ganache Cake - Home - Goa - IMG-20210104-WA0004.jpg",
+    "autor": "Nouhad Shaikh",
+    "licenca": "CC BY-SA 4.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Whipped_Chocolate_Ganache_Cake_-_Home_-_Goa_-_IMG-20210104-WA0004.jpg"
+  },
+  {
+    "produto": "bolo-cenoura",
+    "arquivo": "assets/img/produtos/bolo-cenoura.jpg",
+    "titulo": "Bolo de Cenoura (diagonal), 08-12-2020.jpg",
+    "autor": "Pedro Toniazzo Terres",
+    "licenca": "CC BY-SA 4.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Bolo_de_Cenoura_(diagonal),_08-12-2020.jpg"
+  },
+  {
+    "produto": "bolo-morango",
+    "arquivo": "assets/img/produtos/bolo-morango.jpg",
+    "titulo": "Strawberry Cream Cake.jpg",
+    "autor": "Kimberly Vardeman from Lubbock, TX, USA",
+    "licenca": "CC BY 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Strawberry_Cream_Cake.jpg"
+  },
+  {
+    "produto": "torta-limao",
+    "arquivo": "assets/img/produtos/torta-limao.jpg",
+    "titulo": "A Lemon Meringue Tart.jpg",
+    "autor": "PDPhoto.org",
+    "licenca": "Public domain",
+    "pagina": "https://commons.wikimedia.org/wiki/File:A_Lemon_Meringue_Tart.jpg"
+  },
+  {
+    "produto": "torta-holandesa",
+    "arquivo": "assets/img/produtos/torta-holandesa.jpg",
+    "titulo": "Silvialeite-com-br-creative-commons-4-sa.jpg",
+    "autor": "Silvia Leite",
+    "licenca": "CC BY-SA 4.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Silvialeite-com-br-creative-commons-4-sa.jpg"
+  },
+  {
+    "produto": "cheesecake",
+    "arquivo": "assets/img/produtos/cheesecake.jpg",
+    "titulo": "Cheesecake mit Beeren.jpg",
+    "autor": "Alice Wiegand",
+    "licenca": "CC BY-SA 4.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Cheesecake_mit_Beeren.jpg"
+  },
+  {
+    "produto": "brownie",
+    "arquivo": "assets/img/produtos/brownie.jpg",
+    "titulo": "Brownie IMG 001.jpg",
+    "autor": "Phadke09",
+    "licenca": "CC BY-SA 4.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Brownie_IMG_001.jpg"
+  },
+  {
+    "produto": "macarons",
+    "arquivo": "assets/img/produtos/macarons.jpg",
+    "titulo": "Macarons, French made mini cakes.JPG",
+    "autor": "Nicolas Halftermeyer",
+    "licenca": "CC BY-SA 3.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Macarons,_French_made_mini_cakes.JPG"
+  },
+  {
+    "produto": "trufas",
+    "arquivo": "assets/img/produtos/trufas.jpg",
+    "titulo": "Chocolate truffles box.jpg",
+    "autor": "Tiia Monto",
+    "licenca": "CC BY-SA 4.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Chocolate_truffles_box.jpg"
+  },
+  {
+    "produto": "donut",
+    "arquivo": "assets/img/produtos/donut.jpg",
+    "titulo": "Christmas doughnut (15273125807).jpg",
+    "autor": "Ryan A. Monson",
+    "licenca": "CC BY 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Christmas_doughnut_(15273125807).jpg"
+  },
+  {
+    "produto": "bolo-pote-ninho",
+    "arquivo": "assets/img/produtos/bolo-pote-ninho.jpg",
+    "titulo": "Strawberry marshmallow - strawberry dessert in a jar (KETO, LCHF, Low Carb, Gluten free, FIT) - 52774792464.jpg",
+    "autor": "Ewelina Podrez-Siama",
+    "licenca": "CC BY 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Strawberry_marshmallow_-_strawberry_dessert_in_a_jar_(KETO,_LCHF,_Low_Carb,_Gluten_free,_FIT)_-_52774792464.jpg"
+  },
+  {
+    "produto": "cafe",
+    "arquivo": "assets/img/produtos/cafe.jpg",
+    "titulo": "A small cup of coffee.JPG",
+    "autor": "Julius Schorzman",
+    "licenca": "CC BY-SA 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:A_small_cup_of_coffee.JPG"
+  },
+  {
+    "produto": "chocolate-quente",
+    "arquivo": "assets/img/produtos/chocolate-quente.jpg",
+    "titulo": "Hot chocolate (2).jpg",
+    "autor": "masatoshi_ from Kyoto, Japan",
+    "licenca": "CC BY 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Hot_chocolate_(2).jpg"
+  },
+  {
+    "produto": "suco-laranja",
+    "arquivo": "assets/img/produtos/suco-laranja.jpg",
+    "titulo": "Orange juice 1 edit1.jpg",
+    "autor": "Agency of the United States Department of Agriculture Edited Version by: Arad",
+    "licenca": "Public domain",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Orange_juice_1_edit1.jpg"
+  },
+  {
+    "produto": "milkshake",
+    "arquivo": "assets/img/produtos/milkshake.jpg",
+    "titulo": "Strawberry Milkshake Whipped Cream.jpg",
+    "autor": "Alex Gorzen",
+    "licenca": "CC BY-SA 2.0",
+    "pagina": "https://commons.wikimedia.org/wiki/File:Strawberry_Milkshake_Whipped_Cream.jpg"
+  }
+]

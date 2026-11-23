@@ -587,3 +587,27 @@ body.painel { display: block; min-height: 100vh; }
   .categoria-ordem { grid-row: auto; }
   .categoria-excluir { grid-column: auto; }
 }
+
+/* =====================================================================
+   QR Code da rota para o entregador (detalhes do pedido)
+   ===================================================================== */
+.qr-entrega { display: flex; align-items: center; gap: 18px; }
+.qr-entrega h2 { margin-bottom: 6px; }
+.qr-codigo {
+  width: 150px;
+  height: 150px;
+  flex-shrink: 0;
+  padding: 6px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 14px;
+  background: #fff;
+}
+.qr-codigo svg { display: block; width: 100%; height: 100%; }
+.qr-codigo svg path { fill: var(--cor-texto); }
+
+@media print {
+  .qr-entrega { break-inside: avoid; }
+  .qr-codigo { width: 4.2cm; height: 4.2cm; border: 0; }
+  .qr-codigo svg path { fill: #000; }
+  .qr-impressao { display: none; }
+}

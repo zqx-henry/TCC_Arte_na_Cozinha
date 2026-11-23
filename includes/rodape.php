@@ -36,6 +36,7 @@ $linkMapa     = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencod
           <li><a href="<?= h(link_whatsapp(config_loja('whatsapp_loja'))) ?>" target="_blank" rel="noopener">WhatsApp <?= h(formatar_telefone(config_loja('whatsapp_loja'))) ?></a></li>
           <li><a href="acompanhar.php">Acompanhar pedido</a></li>
           <li><a href="privacidade.php">Aviso de privacidade (LGPD)</a></li>
+          <li><a href="creditos.php">Créditos das fotos</a></li>
           <li><a href="admin/">Área da loja</a></li>
         </ul>
       </div>
@@ -51,7 +52,7 @@ $linkMapa     = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencod
     <p class="rodape-base">
       &copy; <?= date('Y') ?> Arte na Cozinha · <?= h($enderecoLoja) ?>, <?= h($cidadeLoja) ?><br>
       Projeto de TCC — Curso Técnico em Desenvolvimento de Sistemas, Etec Fernando Prestes (Sorocaba).
-      Produtos, nomes e preços ilustrativos. Mapa © colaboradores do OpenStreetMap.
+      Produtos, nomes, preços e fotos ilustrativos (<a href="creditos.php">créditos</a>). Mapa © colaboradores do OpenStreetMap.
     </p>
   </div>
 </footer>
@@ -67,10 +68,10 @@ $linkMapa     = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencod
 <?php endif; ?>
 
 <script>window.AGORA_SERVIDOR = <?= time() ?>;</script>
-<script src="assets/js/carrinho.js?v=1.2"></script>
-<script src="assets/js/contagem.js?v=1.2"></script>
+<script src="assets/js/carrinho.js?v=1.3"></script>
+<script src="assets/js/contagem.js?v=1.3"></script>
 <?php foreach ($scriptsPagina ?? [] as $script): ?>
-<script src="<?= h($script) ?>?v=1.2"></script>
+<script src="<?= h($script) ?>?v=1.3"></script>
 <?php endforeach; ?>
 </body>
 </html>

@@ -3,6 +3,7 @@
  * Painel – Detalhes do pedido (RF11)
  */
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/frete.php';
 $admin = exigir_login();
 
 $pedido = buscar_pedido((int) ($_GET['id'] ?? 0));
@@ -22,8 +23,11 @@ if ($pedido['id_admin']) {
 }
 $subtotal = array_sum(array_column($pedido['itens'], 'subtotal'));
 
-$tituloPagina = 'Pedido nº ' . $id;
-$menuAtivo    = 'pedidos';
+$linkRota = link_rota_entrega($pedido);
+
+$tituloPagina  = 'Pedido nº ' . $id;
+$menuAtivo     = 'pedidos';
+$scriptsPagina = ['../assets/js/vendor/qrcode.js', '../assets/js/admin-qr.js'];
 require __DIR__ . '/../includes/admin_topo.php';
 
 $formStatus = function (string $status, string $rotulo, string $classe = 'botao') use ($id) {
@@ -96,10 +100,23 @@ $formStatus = function (string $status, string $rotulo, string $classe = 'botao'
            href="<?= h(link_whatsapp($pedido['telefone'], 'Olá, ' . explode(' ', $pedido['nome'])[0] . '! Aqui é da Arte na Cozinha, sobre o seu pedido nº ' . $id . '.')) ?>">
           <?= icone('whatsapp') ?> WhatsApp do cliente
         </a>
-        <a class="botao botao-contorno" target="_blank" rel="noopener"
-           href="https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=<?= rawurlencode(config_loja('endereco_loja') . ', ' . config_loja('cidade')) ?>&destination=<?= rawurlencode($pedido['endereco'] . ', ' . $pedido['bairro'] . ', ' . config_loja('cidade')) ?>">Rota da entrega</a>
+        <a class="botao botao-contorno" target="_blank" rel="noopener" href="<?= h($linkRota) ?>">Rota da entrega</a>
       </div>
     </section>
+
+    <?php if (!in_array($pedido['status'], ['entregue', 'cancelado'], true)): ?>
+    <!-- QR Code da rota: o entregador aponta a câmera e o Google Maps abre com o destino -->
+    <section class="cartao qr-entrega">
+      <div class="qr-codigo" id="qrRota" data-url="<?= h($linkRota) ?>" role="img"
+           aria-label="QR Code com a rota até o endereço do cliente"></div>
+      <div>
+        <h2>QR Code para o entregador</h2>
+        <p class="dica" style="margin-top:0">Aponte a câmera do celular: o <strong>Google Maps</strong> abre com a rota
+          de onde o entregador estiver até <strong><?= h($pedido['endereco']) ?> – <?= h($pedido['bairro']) ?></strong>.</p>
+        <p class="dica qr-impressao">Também sai na <strong>comanda impressa</strong>, para colar na embalagem.</p>
+      </div>
+    </section>
+    <?php endif; ?>
 
     <section class="cartao">
       <h2>Histórico</h2>

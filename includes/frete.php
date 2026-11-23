@@ -208,6 +208,27 @@ function calcular_frete(string $endereco, string $bairro): array
     ];
 }
 
+/**
+ * Link do Google Maps com a rota até o cliente (usado no QR Code do entregador).
+ * Sem "origin": o Maps traça a rota a partir de onde o entregador está.
+ * Usa o endereço escrito (rua, número, bairro e cidade): a busca do Google
+ * encontra endereços brasileiros com mais precisão que as coordenadas do OpenStreetMap.
+ */
+function link_rota_entrega(array $pedido): string
+{
+    $destino = "{$pedido['endereco']}, {$pedido['bairro']}, " . config_loja('cidade', 'Sorocaba – SP');
+    // Sem acentos e travessões: o link fica mais curto e o QR menos denso (mais fácil de ler impresso).
+    // O Google encontra "Rua Sao Bento" do mesmo jeito.
+    $destino = strtr($destino, [
+        'á' => 'a', 'à' => 'a', 'ã' => 'a', 'â' => 'a', 'é' => 'e', 'ê' => 'e', 'í' => 'i', 'ó' => 'o', 'ô' => 'o',
+        'õ' => 'o', 'ú' => 'u', 'ü' => 'u', 'ç' => 'c', 'Á' => 'A', 'À' => 'A', 'Ã' => 'A', 'Â' => 'A', 'É' => 'E',
+        'Ê' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ú' => 'U', 'Ç' => 'C', '–' => '-', '—' => '-',
+    ]);
+    // Espaço vira "+" e a vírgula fica como está (o Google aceita): QR ainda menor
+    $destino = str_replace('%2C', ',', urlencode($destino));
+    return 'https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' . $destino;
+}
+
 /** Localiza o endereço da própria loja (usado ao salvar as Configurações) */
 function localizar_loja(string $endereco, string $cidade): ?array
 {

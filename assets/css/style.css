@@ -1038,3 +1038,16 @@ main { flex: 1; padding-bottom: 110px; }
 @media (min-width: 760px) {
   .layout-conta { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
 }
+
+/* Créditos das fotos */
+.lista-creditos { display: grid; gap: 10px; }
+.credito { display: flex; align-items: center; gap: 14px; margin: 0; padding: 12px; }
+.credito img { width: 72px; height: 72px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+.credito small { display: block; color: var(--cor-texto-suave); font-size: .82rem; word-break: break-word; }
+@media (min-width: 760px) { .lista-creditos { grid-template-columns: 1fr 1fr; } }
+
+/* Celular: WhatsApp à esquerda, para não cobrir o botão "+" dos produtos */
+@media (max-width: 759px) {
+  .whatsapp-flutuante { right: auto; left: 16px; width: 52px; height: 52px; }
+  .whatsapp-flutuante svg { width: 27px; height: 27px; }
+}

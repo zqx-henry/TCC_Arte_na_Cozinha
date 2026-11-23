@@ -232,23 +232,23 @@ INSERT INTO categoria (nome, ordem) VALUES
 
 -- Produtos (categoria: Bolos | Doces | Tortas | Bebidas)
 INSERT INTO produto (id_produto, id_admin, nome, descricao, categoria, preco, preco_promocional, imagem, disponivel) VALUES
-( 1, 1, 'Cupcake Red Velvet',            'Massa aveludada com cobertura de cream cheese',                'Doces',   9.90, NULL,  'assets/img/produtos/cupcake-red-velvet.svg', 1),
-( 2, 1, 'Brigadeiro gourmet (4 un.)',    'Caixa com 4 unidades, sabores sortidos',                       'Doces',  16.00, NULL,  'assets/img/produtos/brigadeiro-gourmet.svg', 1),
-( 3, 1, 'Bolo de chocolate (1 kg)',      'Recheio de brigadeiro e cobertura de ganache',                 'Bolos',  79.90, NULL,  'assets/img/produtos/bolo-chocolate.svg', 1),
-( 4, 1, 'Bolo de cenoura (1 kg)',        'Massa fofinha de cenoura com cobertura de chocolate',          'Bolos',  64.90, NULL,  'assets/img/produtos/bolo-cenoura.svg', 1),
-( 5, 1, 'Bolo de morango com chantilly', 'Pão de ló, creme de baunilha, morangos frescos e chantilly',   'Bolos',  89.90, 79.90, 'assets/img/produtos/bolo-morango.svg', 1),
-( 6, 1, 'Torta de limão',                'Fatia com massa amanteigada, creme de limão e merengue',       'Tortas', 14.50, NULL,  'assets/img/produtos/torta-limao.svg', 1),
-( 7, 1, 'Torta holandesa',               'Fatia com creme, base de biscoito e cobertura de chocolate',   'Tortas', 15.90, NULL,  'assets/img/produtos/torta-holandesa.svg', 1),
-( 8, 1, 'Cheesecake de frutas vermelhas','Fatia de cheesecake com calda de frutas vermelhas',            'Tortas', 16.90, 14.90, 'assets/img/produtos/cheesecake.svg', 1),
-( 9, 1, 'Brownie',                       'Brownie de chocolate meio amargo com castanhas',               'Doces',  11.90, NULL,  'assets/img/produtos/brownie.svg', 1),
-(10, 1, 'Macarons (6 un.)',              'Caixa com 6 macarons de sabores variados',                     'Doces',  29.90, NULL,  'assets/img/produtos/macarons.svg', 1),
-(11, 1, 'Trufas (6 un.)',                'Trufas de chocolate belga com recheios cremosos',              'Doces',  21.00, NULL,  'assets/img/produtos/trufas.svg', 1),
-(12, 1, 'Donut recheado',                'Donut com recheio de doce de leite e cobertura rosa',          'Doces',   8.50, NULL,  'assets/img/produtos/donut.svg', 1),
-(13, 1, 'Bolo de pote de Ninho com morango','Camadas de bolo, creme de leite Ninho e morangos',          'Bolos',  16.90, 13.90, 'assets/img/produtos/bolo-pote-ninho.svg', 1),
-(14, 1, 'Café coado',                    'Café especial coado na hora (200 ml)',                         'Bebidas', 6.00, NULL,  'assets/img/produtos/cafe.svg', 1),
-(15, 1, 'Chocolate quente',              'Chocolate cremoso com chantilly (300 ml)',                     'Bebidas',10.90, NULL,  'assets/img/produtos/chocolate-quente.svg', 1),
-(16, 1, 'Suco natural de laranja',       'Suco feito na hora (400 ml)',                                  'Bebidas', 8.90, NULL,  'assets/img/produtos/suco-laranja.svg', 1),
-(17, 1, 'Milk-shake de morango',         'Sorvete de creme batido com morangos (400 ml)',                'Bebidas',15.90, NULL,  'assets/img/produtos/milkshake.svg', 1);
+( 1, 1, 'Cupcake Red Velvet',            'Massa aveludada com cobertura de cream cheese',                'Doces',   9.90, NULL,  'assets/img/produtos/cupcake-red-velvet.jpg', 1),
+( 2, 1, 'Brigadeiro gourmet (4 un.)',    'Caixa com 4 unidades, sabores sortidos',                       'Doces',  16.00, NULL,  'assets/img/produtos/brigadeiro-gourmet.jpg', 1),
+( 3, 1, 'Bolo de chocolate (1 kg)',      'Recheio de brigadeiro e cobertura de ganache',                 'Bolos',  79.90, NULL,  'assets/img/produtos/bolo-chocolate.jpg', 1),
+( 4, 1, 'Bolo de cenoura (1 kg)',        'Massa fofinha de cenoura com cobertura de chocolate',          'Bolos',  64.90, NULL,  'assets/img/produtos/bolo-cenoura.jpg', 1),
+( 5, 1, 'Bolo de morango com chantilly', 'Pão de ló, creme de baunilha, morangos frescos e chantilly',   'Bolos',  89.90, 79.90, 'assets/img/produtos/bolo-morango.jpg', 1),
+( 6, 1, 'Torta de limão',                'Fatia com massa amanteigada, creme de limão e merengue',       'Tortas', 14.50, NULL,  'assets/img/produtos/torta-limao.jpg', 1),
+( 7, 1, 'Torta holandesa',               'Fatia com creme, base de biscoito e cobertura de chocolate',   'Tortas', 15.90, NULL,  'assets/img/produtos/torta-holandesa.jpg', 1),
+( 8, 1, 'Cheesecake de frutas vermelhas','Fatia de cheesecake com calda de frutas vermelhas',            'Tortas', 16.90, 14.90, 'assets/img/produtos/cheesecake.jpg', 1),
+( 9, 1, 'Brownie',                       'Brownie de chocolate meio amargo com castanhas',               'Doces',  11.90, NULL,  'assets/img/produtos/brownie.jpg', 1),
+(10, 1, 'Macarons (6 un.)',              'Caixa com 6 macarons de sabores variados',                     'Doces',  29.90, NULL,  'assets/img/produtos/macarons.jpg', 1),
+(11, 1, 'Trufas (6 un.)',                'Trufas de chocolate belga com recheios cremosos',              'Doces',  21.00, NULL,  'assets/img/produtos/trufas.jpg', 1),
+(12, 1, 'Donut recheado',                'Donut com recheio de doce de leite e cobertura rosa',          'Doces',   8.50, NULL,  'assets/img/produtos/donut.jpg', 1),
+(13, 1, 'Bolo de pote de Ninho com morango','Camadas de bolo, creme de leite Ninho e morangos',          'Bolos',  16.90, 13.90, 'assets/img/produtos/bolo-pote-ninho.jpg', 1),
+(14, 1, 'Café coado',                    'Café especial coado na hora (200 ml)',                         'Bebidas', 6.00, NULL,  'assets/img/produtos/cafe.jpg', 1),
+(15, 1, 'Chocolate quente',              'Chocolate cremoso com chantilly (300 ml)',                     'Bebidas',10.90, NULL,  'assets/img/produtos/chocolate-quente.jpg', 1),
+(16, 1, 'Suco natural de laranja',       'Suco feito na hora (400 ml)',                                  'Bebidas', 8.90, NULL,  'assets/img/produtos/suco-laranja.jpg', 1),
+(17, 1, 'Milk-shake de morango',         'Sorvete de creme batido com morangos (400 ml)',                'Bebidas',15.90, NULL,  'assets/img/produtos/milkshake.jpg', 1);
 
 -- Clientes ilustrativos (Figura 11)
 INSERT INTO cliente (id_cliente, nome, telefone, endereco, bairro, complemento) VALUES
